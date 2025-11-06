@@ -18,4 +18,4 @@ cd src/5d_bulk
 ./nu5d_mat_osc
 ```
 
-then you get the output, run script in `build/src/data/prob/T2Kplot.py` to get a fig
+after getting the output, you can run script in `build/src/data/prob/T2Kplot.py` to get the fig
