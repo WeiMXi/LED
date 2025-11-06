@@ -1,0 +1,3 @@
+file(COPY ${PROJECT_SOURCE_DIR}/experiments 
+     DESTINATION ${CMAKE_BINARY_DIR}/src
+     FILES_MATCHING PATTERN "*")
