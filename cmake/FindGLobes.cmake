@@ -19,7 +19,8 @@ if(LIV_BUILTIN_GLOBES)
     endif()
     # set download dest and URL
     set(LIV_BUILTIN_GLOBES_SRC_DIR "${LIV_PROJECT_3RDPARTY_DIR}/GLoBES-main")
-    set(LIV_BUILTIN_GLOBES_URL "https://github.com/WeiMXi/globes-cmake/archive/refs/heads/main.zip")
+    set(LIV_BUILTIN_GLOBES_URL1 "https://github.com/WeiMXi/globes-cmake/archive/refs/heads/main.zip")
+    set(LIV_BUILTIN_GLOBES_URL2 "https://gh-proxy.com/https://github.com/WeiMXi/globes-cmake/archive/refs/heads/main.zip")
     # reuse or download
     include(FetchContent)
     if(EXISTS "${LIV_BUILTIN_GLOBES_SRC_DIR}/CMakeLists.txt")
@@ -27,8 +28,8 @@ if(LIV_BUILTIN_GLOBES)
         message(STATUS "Reusing GLoBES source ${LIV_BUILTIN_GLOBES_SRC_DIR}")
     else()
         FetchContent_Declare(GLoBES SOURCE_DIR "${LIV_BUILTIN_GLOBES_SRC_DIR}"
-                                     URL "${LIV_BUILTIN_GLOBES_URL}")
-        message(STATUS "GLoBES will be downloaded from ${LIV_BUILTIN_GLOBES_URL} to ${LIV_BUILTIN_GLOBES_SRC_DIR}")
+                                     URL "${LIV_BUILTIN_GLOBES_URL1}" "${LIV_BUILTIN_GLOBES_URL2}")
+        message(STATUS "GLoBES will be downloaded from ${LIV_BUILTIN_GLOBES_URL1} (with fallback to GitHub proxy) to ${LIV_BUILTIN_GLOBES_SRC_DIR}")
     endif()
     # configure it
     message(STATUS "Downloading (if required) and configuring GLoBES (version: ${LIV_BUILTIN_GLOBES_VERSION})")
