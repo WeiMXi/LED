@@ -1,0 +1,233 @@
+%!GLoBES
+
+$version="3.0.0"
+
+/* Copyright 2021 Sampsa Vihonen (SYSU) and Pedro Pasquini (SJTU)
+ *
+ * If you modify this file you have to rename it.
+ *
+ * If you are using this file for producing a scientific publication
+ * or a talk please cite the following references (to be added) and check the supporting
+ * files for similar comments.
+ *
+ * This GLB file is created to assist in the analysis of the numu and numubar
+ * samples in the NOvA far detector data, which were released in arXiv:2108.08219. 
+ *
+ *  Last Update: 2021-11-11 
+ * 
+ * Fixed by Haixing Lin (SYSU or CCNU)
+ *
+ *  Last Update: 2025-10-19
+ */
+
+
+
+/* ####### Beam flux ####### */
+
+
+numode_norm	= 6.6896 * 6.47886918e-19
+antimode_norm	= 9.2696 * 6.47886918e-19
+
+nuflux(#NOvA_numode_numu)<
+        @flux_file="../experiments/NOvA_2108.08219/NOvA_fluxes/NOvA_flux_neutrino_numu.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 13.6e20         /* POT */
+        @norm = numode_norm
+>
+
+nuflux(#NOvA_numode_numubar)<
+        @flux_file="../experiments/NOvA_2108.08219/NOvA_fluxes/NOvA_flux_neutrino_numubar.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 13.6e20         /* POT */
+        @norm = numode_norm
+>
+
+nuflux(#NOvA_antimode_numu)<
+        @flux_file="../experiments/NOvA_2108.08219/NOvA_fluxes/NOvA_flux_antineutrino_numu.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 12.5e20        /* POT */
+        @norm = antimode_norm
+>
+
+nuflux(#NOvA_antimode_numubar)<
+        @flux_file="../experiments/NOvA_2108.08219/NOvA_fluxes/NOvA_flux_antineutrino_numubar.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 12.5e20        /* POT */
+        @norm = antimode_norm
+>
+
+
+/* ####### Detector settings ###### */
+
+$target_mass =		 14.0	/* kt (fiducial mass) */
+
+
+
+/* ####### Energy window ####### */
+
+$emin =		0.0	/* GeV */
+$emax =		5.0	/* GeV */
+$binsize =		{0.75, 0.25, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.25, 0.25, 0.25, 0.25, 0.5, 0.5, 1.0}
+
+$sampling_min =	0.0	/* GeV */
+$sampling_max =	20.0	/* GeV */
+$sampling_points = 200
+
+/* ####### Baseline setting ####### */
+
+$profiletype =		3 
+$densitytab =		{2.8} 
+$lengthtab =		{812}	/* km */
+
+
+
+/* ####### Technical information ####### */
+
+$filter_state = 0 
+$filter_value = 1000000 
+
+
+
+/* ####### Energy resolution ####### */
+
+energy(#NuMode_sig)<
+        @type = 1
+        @sigma_e = {0.099, 0, 0}
+>
+
+energy(#NuMode_bkg)<
+        @type = 1
+        @sigma_e = {0.091, 0, 0}
+>
+
+energy(#aNuMode_sig)<
+        @type = 1
+        @sigma_e = {0.089, 0, 0}
+>
+
+energy(#aNuMode_bkg)<
+        @type = 1
+        @sigma_e = {0.082, 0, 0}
+>
+
+/* ####### Cross sections ####### */
+
+cross(#CC)<
+	@cross_file = "../experiments/NOvA_2108.08219/NOvA_xsecs/XCC.dat"
+>
+
+cross(#NC)<
+	@cross_file = "../experiments/NOvA_2108.08219/NOvA_xsecs/XNC.dat"
+>
+
+
+/* ####### Energy-dependent efficiencies ####### */
+
+/* numu signal (1) */
+%eff_numode_sg =		{0.000104,0.667524,0.871413,0.953633,1.011302,
+1.145002,1.340691,1.354756,1.290504,1.237607,
+1.204512,1.168728,1.057668,0.884641,0.791395,
+0.773259,0.724770,0.806656,0.704627}
+
+/* numu background (2) */
+%eff_numode_bg =		{0.074301,0.127465,0.130628,0.099758,0.090898,
+0.068680,0.033016,0.022740,0.020999,0.016707,
+0.011616,0.009751,0.009630,0.010459,0.010392,
+0.011127,0.025426,0.050501,0.081707}
+
+/* numubar signal (3) */
+%eff_anumode_sg =		{0.117892,0.512142,0.672958,0.741002,0.780023,
+0.857792,0.869786,0.933546,0.926246,0.905104,
+0.875978,0.861387,0.801645,0.713872,0.663461,
+0.638186,0.578376,0.568456,0.587854}
+
+/* numubar background (4) */
+%eff_anumode_bg =		{0.098785,0.053532,0.067833,0.054187,0.047993,
+0.039178,0.023018,0.013207,0.009439,0.004582,
+0.006235,0.004764,0.005416,0.005017,0.009617,
+0.016830,0.030249,0.047513,0.064819}
+
+
+/* ####### Channel definitions ####### */
+
+channel(#NuMode_numu)<
+	@channel =	#NOvA_numode_numu:		+:	m:	m:	#CC:	 #NuMode_sig
+	@post_smearing_efficiencies =	copy(%eff_numode_sg)
+>
+
+channel(#NuMode_anumu)<
+	@channel =	#NOvA_numode_numubar:		-:	m:	m:	#CC:	 #NuMode_sig
+	@post_smearing_efficiencies =	copy(%eff_numode_sg)
+>
+
+channel(#NuMode_numu_bkg)<
+	@channel =	#NOvA_numode_numu:		+:	NOSC_m:	NOSC_m:	#NC:	#NuMode_bkg
+	@post_smearing_efficiencies =	copy(%eff_numode_bg)
+>
+
+channel(#NuMode_anumu_bkg)<
+	@channel =	#NOvA_numode_numubar:		-:	NOSC_m:	NOSC_m:	#NC:	#NuMode_bkg
+	@post_smearing_efficiencies =	copy(%eff_numode_bg)
+>
+
+
+
+/********************** aNuMode *************************/
+
+
+channel(#aNuMode_numu)<
+	@channel =	#NOvA_antimode_numu:		+:	m:	m:	#CC:	 #aNuMode_sig
+	@post_smearing_efficiencies =	copy(%eff_anumode_sg)
+>
+
+channel(#aNuMode_anumu)<
+	@channel =	#NOvA_antimode_numubar:		-:	m:	m:	#CC:	 #aNuMode_sig
+	@post_smearing_efficiencies =	copy(%eff_anumode_sg)
+>
+
+channel(#aNuMode_numu_bkg)<
+	@channel =	#NOvA_antimode_numu:		+:	NOSC_m:	NOSC_m:	#NC:	#aNuMode_bkg
+	@post_smearing_efficiencies =	copy(%eff_anumode_bg)
+>
+
+channel(#aNuMode_anumu_bkg)<
+	@channel =	#NOvA_antimode_numubar:		-:	NOSC_m:	NOSC_m:	#NC:	#aNuMode_bkg
+	@post_smearing_efficiencies =	copy(%eff_anumode_bg)
+>
+
+
+
+/* ####### Setting the rules ####### */
+ 
+rule(#Nu_Mu_Disappearance)<
+	@signal = 1.0@#NuMode_numu : 1.0@#NuMode_anumu
+	@signalerror = 0.05 : 0.025
+
+	@background =  1.0@#NuMode_numu_bkg : 1.0@#NuMode_anumu_bkg
+	@backgrounderror = 0.1 : 0.025
+
+        @sys_on_function = "chiSpectrumTilt"
+        @sys_off_function = "chiNoSysSpectrum"
+
+        @data_flag = 1
+        //@data = {0.15, 2.86, 1.01, 3.02, 1.01, 2.02, 2.02, 3.97, 6.03, 9.04, 15.00, 11.99, 15.60, 9.99, 6.84, 9.25, 3.24, 2.64, 1.60}
+        @data = {1.12,7.15,1.01,3.02,1.01,2.02,2.02,3.97,6.03,9.04,15.00,11.99,39.00,24.97,17.10,23.12,16.20,13.20,16.00}
+>
+
+rule(#Nu_Mu_Bar_Disappearance)<
+	@signal = 1.0@#aNuMode_numu : 1.0@#aNuMode_anumu
+	@signalerror = 0.05 : 0.025
+
+	@background =  1.0@#aNuMode_numu_bkg : 1.0@#aNuMode_anumu_bkg
+	@backgrounderror = 0.1 : 0.025
+	
+	@sys_on_function = "chiSpectrumTilt"
+	@sys_off_function = "chiNoSysSpectrum"
+
+        @data_flag = 1
+        //@data = {0.27, 2.00, 1.00, 2.00, 0.00, 2.00, 3.01, 0.00, 0.00, 8.00, 3.01, 6.99, 4.40, 5.99, 2.41, 2.00, 2.39, 1.18, 1.69}
+        @data = {2.02,5.00,1.00,2.00,0.00,2.00,3.01,0.00,0.00,8.00,3.01,6.99,11.00,14.97,6.03,5.00,11.95,5.90,16.90}
+
+>
+
+/**********************END**********************/
