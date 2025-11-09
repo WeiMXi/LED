@@ -71,9 +71,6 @@ int main(int argc, char* argv[]) {
 
     const double baseline = 295; // 295 for T2K and 810 for NOvA
 
-    std::cout << glbConstantDensityProbability(2, 2, 1, 0.6, 295, 2.8) << "\n";
-    return EXIT_SUCCESS;
-
     outputFiles.InitOutput(T2KFile1, "");
     for (int i = 1; i <= 1000; i++) {
         const double prob = glbConstantDensityProbability(2, 2, 1, i * 0.004, 295, 2.8);
