@@ -1,6 +1,6 @@
-add_executable(nu5d_mat_osc nu5d_mat_osc.c myio.c nu5d_mat_osc.h)
+add_executable(nu5d_mat_osc nu5d_mat_osc.c++)
 
-target_link_libraries(nu5d_mat_osc GSL::gsl globeslib)
+target_link_libraries(nu5d_mat_osc GSL::gsl globeslib LED_Lib)
 if(OpenBLAS_FOUND)
      target_link_libraries(nu5d_mat_osc openblas)
 endif()
