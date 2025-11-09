@@ -2,20 +2,15 @@
 
 Dependencies:
 * C++ compiler (GCC, Clang, etl)
-* GSL
+* GSL (≥ 2.6)
 * OpenBlas (disable if not found)
-
-need by GLoBES:
-* yacc/bison
-* flex
-
-
+* CMake (≥ 3.12)
 
 Required, built-in if not found (network or pre-downloaded source is required):
 * [GLoBES, General Long Baseline Experiment Simulator](https://www.mpi-hd.mpg.de/personalhomes/globes/index.html), built-in version: [globes-cmake](https://github.com/WeiMXi/globes-cmake)  
 
 
-for debian, you can run `sudo apt install libopenblas-dev bison flex` to install them
+for debian, you can run `sudo apt install libopenblas-dev cmake libgsl-dev` to install them
 ```shell
 cd the-project-path
 mkdir build
