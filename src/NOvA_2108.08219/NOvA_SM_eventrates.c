@@ -10,8 +10,8 @@
  *   Step 4: Events after data-driven corrections
  */
 
-#include "myio.h" /* my input-output routines */
 #include "NOvA_setup.h"
+#include "myio.h" /* my input-output routines */
 
 #include <glb_smear.h>
 #include <glb_types.h>
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 
     InitOutput(MYFILE, "");
     for (int i = 1; i <= 1000; i++) {
-        double prob = glbConstantDensityProbability(2, 2, 1, i * 0.004, 295, 2.8);
+        double prob = glbConstantDensityProbability(2, 2, 1, i * 0.004, 810, 2.8);
         AddToOutput2(i * 0.004, prob);
     }
 

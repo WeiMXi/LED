@@ -155,7 +155,7 @@ void make_RRH(gsl_matrix_complex* RRH, gsl_matrix_complex* U,
 // E [GeV], masses [eV], R [micron], density [g/cm^3]
 {
     double R_eVinv = mum_to_eVinv(R); // [eV^{-1}]
-    double E_eV = E * 10e9;
+    double E_eV = E * 1e9;
     double cR[3] = {c1R, c2R, c3R};
     double muR[3] = {mu1R, mu2R, mu3R};
 

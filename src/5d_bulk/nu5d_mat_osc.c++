@@ -1,5 +1,4 @@
 #include "ledlib/Engine/ProbabilityEngine.h++"
-
 #include "ledlib/IO/IO.h++" /* my input-output routines */
 
 #include <cstdlib>
@@ -36,8 +35,8 @@ int main(int argc, char* argv[]) {
                                  &LED::CalProbability::my_set_oscillation_parameters,
                                  &LED::CalProbability::my_get_oscillation_parameters,
                                  NULL);
-    // /*parameters for T2K*/
 
+    /*parameters for T2K*/
     const double theta12 = asin(sqrt(0.303));
     const double theta13 = asin(sqrt(0.028)); // 2303.03222
     const double theta23 = asin(sqrt(0.467)); // 2303.03222
@@ -63,7 +62,7 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU1R);
     glbSetOscParams(central_values, 0.0275, LED::CalProbability::GLB_MU2R);
     glbSetOscParams(central_values, 0.1603, LED::CalProbability::GLB_MU3R); // T2K
-    // glbSetOscParams(central_values, 0.1598, GLB_MU3R); // NOvA
+    // glbSetOscParams(central_values, 0.1598, LED::CalProbability::GLB_MU3R); // NOvA
     LED::CalProbability::SetModesCutoff(50);
 
     glbSetOscillationParameters(central_values);
@@ -73,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     outputFiles.InitOutput(T2KFile1, "");
     for (int i = 1; i <= 1000; i++) {
-        const double prob = glbConstantDensityProbability(2, 2, 1, i * 0.004, 295, 2.8);
+        const double prob = glbConstantDensityProbability(2, 2, 1, i * 0.004, baseline, 2.8);
         outputFiles.AddToOutput2(i * 0.004, prob);
     }
     glbSetOscParams(central_values, 42, LED::CalProbability::GLB_C1R);
@@ -83,7 +82,7 @@ int main(int argc, char* argv[]) {
     glbSetRates();
     outputFiles.InitOutput(T2KFile2, "");
     for (int i = 1; i <= 1000; i++) {
-        const double prob = glbVacuumProbability(2, 2, 1, i * 0.004, baseline);
+        const double prob = glbConstantDensityProbability(2, 2, 1, i * 0.004, baseline, 2.8);
         outputFiles.AddToOutput2(i * 0.004, prob);
     }
 
@@ -94,7 +93,7 @@ int main(int argc, char* argv[]) {
     glbSetRates();
     outputFiles.InitOutput(T2KFile3, "");
     for (int i = 1; i <= 1000; i++) {
-        const double prob = glbVacuumProbability(2, 2, 1, i * 0.004, baseline);
+        const double prob = glbConstantDensityProbability(2, 2, 1, i * 0.004, baseline, 2.8);
         outputFiles.AddToOutput2(i * 0.004, prob);
     }
 
@@ -108,7 +107,7 @@ int main(int argc, char* argv[]) {
     glbSetRates();
     outputFiles.InitOutput(T2KFile4, "");
     for (int i = 1; i <= 1000; i++) {
-        const double prob = glbVacuumProbability(2, 2, 1, i * 0.004, baseline);
+        const double prob = glbConstantDensityProbability(2, 2, 1, i * 0.004, baseline, 2.8);
         outputFiles.AddToOutput2(i * 0.004, prob);
     }
 
@@ -119,7 +118,7 @@ int main(int argc, char* argv[]) {
     glbSetRates();
     outputFiles.InitOutput(T2KFile5, "");
     for (int i = 1; i <= 1000; i++) {
-        const double prob = glbVacuumProbability(2, 2, 1, i * 0.004, baseline);
+        const double prob = glbConstantDensityProbability(2, 2, 1, i * 0.004, baseline, 2.8);
         outputFiles.AddToOutput2(i * 0.004, prob);
     }
 

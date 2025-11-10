@@ -11,6 +11,7 @@
  */
 #include "myio.h" /* my input-output routines */
 #include "nu5d_mat_osc.h"
+
 #include "T2K_setup.h"
 
 #include <glb_smear.h>
@@ -61,11 +62,6 @@ int main(int argc, char* argv[]) {
     /* The oscillation probabilities are computed */
     glbSetOscillationParameters(true_values);
     glbSetRates();
-
-    printf("P[3][3]= %f %f %f\n         %f %f %f\n         %f %f %f\n",
-           glbConstantDensityProbability(1, 1, 1, 0.6, 295, 2.8), glbConstantDensityProbability(1, 2, 1, 0.6, 295, 2.8), glbConstantDensityProbability(1, 3, 1, 0.6, 295, 2.8),
-           glbConstantDensityProbability(2, 1, 1, 0.6, 295, 2.8), glbConstantDensityProbability(2, 2, 1, 0.6, 295, 2.8), glbConstantDensityProbability(2, 3, 1, 0.6, 295, 2.8),
-           glbConstantDensityProbability(3, 1, 1, 0.6, 295, 2.8), glbConstantDensityProbability(3, 2, 1, 0.6, 295, 2.8), glbConstantDensityProbability(3, 3, 1, 0.6, 295, 2.8));
 
     InitOutput(MYFILE, "");
     for (int i = 1; i <= 1000; i++) {
