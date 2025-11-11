@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CUDA/CUDAHermDiag.h++"
 #include "globes/globes.h"
 
 #include <cmath>
@@ -204,7 +205,9 @@ inline int prob_matrix_5dnu(double (*P)[3], const int cp_sign, const double E, c
     double R_eVinv = mum_to_eVinv(R);       // [eV^{-1}]
     double L_GeVinv = mum_to_eVinv(length); // [GeV^{-1}]
 
+#ifndef HAVE_CUDA
     gsl_eigen_hermv_workspace* work = gsl_eigen_hermv_alloc(3 * modes);
+#endif
     gsl_vector* e_val = gsl_vector_alloc(3 * modes);
     gsl_matrix_complex* U = gsl_matrix_complex_alloc(3, 3);
     gsl_matrix_complex* RRH = gsl_matrix_complex_alloc(3 * modes, 3 * modes);
@@ -228,18 +231,12 @@ inline int prob_matrix_5dnu(double (*P)[3], const int cp_sign, const double E, c
     make_PMNS(U, cp_sign);
     make_RRH(RRH, U, E, cp_sign, density);
 
+#ifdef HAVE_CUDA
+    const int n = 3 * modes;
+    cuda_eigen_hermv_gsl(RRH, e_val, e_vec, n);
+#else
     gsl_eigen_hermv(RRH, e_val, e_vec, work); // RRH is destroyed here.
-
-    // std::vector<double> eval(3 * modes);
-    // for (int i = 0; i < 3 * modes; i++) {
-    //     eval[i] = gsl_vector_get(e_val, i);
-    // }
-
-    // const auto cmp = [](const double& x, const double& y) -> bool {
-    //     return x < y;
-    // };
-
-    // std::sort(eval.begin(), eval.end(), cmp);
+#endif
 
     for (int i = 0; i < 3; i++) {
         for (int n = 0; n < 3 * modes; n++) {
@@ -263,7 +260,9 @@ inline int prob_matrix_5dnu(double (*P)[3], const int cp_sign, const double E, c
         }
     }
 
+#ifndef HAVE_CUDA
     gsl_eigen_hermv_free(work);
+#endif
     gsl_vector_free(e_val);
     gsl_matrix_complex_free(U);
     gsl_matrix_complex_free(RRH);

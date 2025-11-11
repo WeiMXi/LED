@@ -19,6 +19,9 @@ include(${LED_PROJECT_CMAKE_DIR}/FindOpenBLAS.cmake)
 # GLoBES
 include(${LED_PROJECT_CMAKE_DIR}/FindGLobes.cmake)
 
+# CUDAToolkit
+include(${LED_PROJECT_CMAKE_DIR}/FindCUDAToolkit.cmake)
+
 add_subdirectory(experiments)
 add_subdirectory(data)
 
