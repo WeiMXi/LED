@@ -11,6 +11,7 @@
  */
 
 #include "myio.h" /* my input-output routines */
+#include "nu5d_mat_osc.h"
 
 #include "T2K_setup.h"
 
@@ -23,11 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char MYFILE[] = "../data/T2K/T2K_SM_fit.dat";
-
-double SQR(double x) {
-    return x * x;
-}
+char MYFILE[] = "../data/T2K/T2K_4Dfinite_fit.dat";
 
 int main(int argc, char* argv[]) {
     /* Initialize libglobes */
@@ -35,6 +32,15 @@ int main(int argc, char* argv[]) {
     glbDefineChiFunction(&ChiT2K, 4, "ChiT2K", NULL);
     /* Initialize T2K and NOvA */
     InitializeT2K(&glb_experiment_list[0], &glb_num_of_exps);
+
+    glbRegisterProbabilityEngine(13, /*Number of parameters*/
+                                 &my_probability_matrix,
+                                 &my_set_oscillation_parameters,
+                                 &my_get_oscillation_parameters,
+                                 NULL);
+
+    /* Initialize the parameter vector */
+    glb_params central_values = glbAllocParams();
 
     /* Define standard oscillation parameters for NO in T2K with Reactor Constraint */
     double theta12 = asin(sqrt(0.307)); // nu-fit 5.2
@@ -44,6 +50,15 @@ int main(int argc, char* argv[]) {
     double sdm = 7.53e-5;        // nu-fit 5.2
     double ldm = 2.494e-3 + sdm; // NO
 
+    glbSetOscParams(central_values, 10, GLB_R);
+    glbSetOscParams(central_values, 40, GLB_C1R);
+    glbSetOscParams(central_values, -40, GLB_C2R);
+    glbSetOscParams(central_values, -40, GLB_C3R);
+    glbSetOscParams(central_values, 0.01, GLB_MU1R);
+    glbSetOscParams(central_values, 0.0275, GLB_MU2R);
+    glbSetOscParams(central_values, 0.1603, GLB_MU3R); // T2K
+    SetModesCutoff(50);
+
     /*Obtained from T2K paper 2303.03222*/
     double theta12_error = 0.75 * M_PI / 180; // nu-fit 5.2
     double theta13_error = 1.91e-3;           // nu-fit 5.2
@@ -52,11 +67,18 @@ int main(int argc, char* argv[]) {
     double sdm_error = 0.21e-5; // nu-fit 5.2
     double ldm_error = 0.058e-3;
 
-    /* Initialize the parameter vector */
-    /* Initialize parameter and projection vector(s) */
-    glb_params central_values = glbAllocParams();
-    glb_params test_values = glbAllocParams();
     glb_params input_errors = glbAllocParams();
+
+    glbSetOscParams(input_errors, 0, GLB_R);
+    glbSetOscParams(input_errors, 0, GLB_C1R);
+    glbSetOscParams(input_errors, 0, GLB_C2R);
+    glbSetOscParams(input_errors, 0, GLB_C3R);
+    glbSetOscParams(input_errors, 0, GLB_MU1R);
+    glbSetOscParams(input_errors, 0, GLB_MU2R);
+    glbSetOscParams(input_errors, 0, GLB_MU3R);
+
+    /* Initialize parameter and projection vector(s) */
+    glb_params test_values = glbAllocParams();
     glb_params minimum = glbAllocParams();
     glb_projection T2K_projection = glbAllocProjection();
 
@@ -72,6 +94,13 @@ int main(int argc, char* argv[]) {
 
     /*Set up the Projection  */
     glbDefineProjection(T2K_projection, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_C1R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_C2R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_C3R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_MU1R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_MU2R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_MU3R);
     glbSetDensityProjectionFlag(T2K_projection, GLB_FIXED, GLB_ALL);
     glbSetProjection(T2K_projection);
 
@@ -97,14 +126,16 @@ int main(int argc, char* argv[]) {
 
     for (x = xmin; x <= xmax; x = x + (xmax - xmin) / xsteps) {
         for (y = ymin; y <= ymax; y = y + (ymax - ymin) / ysteps) {
+            printf("%f %f\n", x, y);
             /* Set vector of test values */
             thetheta23 = asin(sqrt(x)); // Sin2 theta23 to radian
             thedeltacp = y;
             glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
             glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
+            glbSetRates();
             /* Compute Chi^2 for all loaded experiments and all rules */
-
             res = glbChiNP(test_values, minimum, GLB_ALL);
+            printf("%f\n", res);
             AddToOutput(x, y, res);
             if (res < chi_min) {
                 theta23_min = thetheta23;
