@@ -1,6 +1,7 @@
 #pragma once
-
-#include "CUDA/CUDAHermDiag.h++"
+#ifdef HAVE_CUDA
+#    include "CUDA/CUDAHermDiag.h++"
+#endif
 #include "globes/globes.h"
 
 #include <cmath>

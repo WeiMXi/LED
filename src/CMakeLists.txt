@@ -3,10 +3,12 @@
 file(GLOB_RECURSE LED_Lib_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/ledlib/*.c++
     ${CMAKE_CURRENT_SOURCE_DIR}/ledlib/*.h++
-    # ${CMAKE_CURRENT_SOURCE_DIR}/ledlib/*.cu
 )
 
-list(FILTER LED_Lib_SRC EXCLUDE REGEX ".*/CUDA/.*")
+list(REMOVE_ITEM LED_Lib_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/ledlib/Engine/CUDA/CUDAHermDiag.h++
+    ${CMAKE_CURRENT_SOURCE_DIR}/ledlib/Engine/CUDA/CUDAHermDiag.cu
+)
 
 if(CUDAToolkit_FOUND)
     enable_language(CUDA)
