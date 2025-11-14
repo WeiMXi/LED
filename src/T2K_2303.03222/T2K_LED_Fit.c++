@@ -10,11 +10,12 @@
  *   Step 4: Events after data-driven corrections
  */
 
-#include "myio.h" /* my input-output routines */
-#include "nu5d_mat_osc.h"
-
+#include "cstdlib"
+#include "ledlib/Engine/ProbabilityEngine.h++"
+#include "ledlib/IO/IO.h++" /* my input-output routines */
+extern "C" {
 #include "T2K_setup.h"
-
+}
 #include <glb_smear.h>
 #include <glb_types.h>
 #include <globes/globes.h> /* GLoBES library */
@@ -25,7 +26,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-char MYFILE[] = "../data/T2K/T2K_4Dfinite_fit.dat";
+const std::string MYFILE = "../data/T2K/T2K_4Dfinite_fit.dat";
+LED::IO::Output outputFiles;
 
 int main(int argc, char* argv[]) {
     /* Initialize libglobes */
@@ -39,9 +41,9 @@ int main(int argc, char* argv[]) {
     InitializeT2K(&glb_experiment_list[0], &glb_num_of_exps);
 
     glbRegisterProbabilityEngine(13, /*Number of parameters*/
-                                 &my_probability_matrix,
-                                 &my_set_oscillation_parameters,
-                                 &my_get_oscillation_parameters,
+                                 &LED::CalProbability::my_probability_matrix,
+                                 &LED::CalProbability::my_set_oscillation_parameters,
+                                 &LED::CalProbability::my_get_oscillation_parameters,
                                  NULL);
 
     /* Initialize the parameter vector */
@@ -55,14 +57,14 @@ int main(int argc, char* argv[]) {
     double sdm = 7.53e-5;        // nu-fit 5.2
     double ldm = 2.494e-3 + sdm; // NO
 
-    glbSetOscParams(central_values, 10, GLB_R);
-    glbSetOscParams(central_values, 40, GLB_C1R);
-    glbSetOscParams(central_values, -40, GLB_C2R);
-    glbSetOscParams(central_values, -40, GLB_C3R);
-    glbSetOscParams(central_values, 0.01, GLB_MU1R);
-    glbSetOscParams(central_values, 0.0275, GLB_MU2R);
-    glbSetOscParams(central_values, 0.1603, GLB_MU3R); // T2K
-    SetModesCutoff(50);
+    glbSetOscParams(central_values, 10, LED::CalProbability::GLB_R);
+    glbSetOscParams(central_values, 40, LED::CalProbability::GLB_C1R);
+    glbSetOscParams(central_values, -40, LED::CalProbability::GLB_C2R);
+    glbSetOscParams(central_values, -40, LED::CalProbability::GLB_C3R);
+    glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(central_values, 0.0275, LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(central_values, 0.1603, LED::CalProbability::GLB_MU3R); // T2K
+    LED::CalProbability::SetModesCutoff(50);
 
     /*Obtained from T2K paper 2303.03222*/
     double theta12_error = 0.75 * M_PI / 180; // nu-fit 5.2
@@ -74,13 +76,13 @@ int main(int argc, char* argv[]) {
 
     glb_params input_errors = glbAllocParams();
 
-    glbSetOscParams(input_errors, 0, GLB_R);
-    glbSetOscParams(input_errors, 0, GLB_C1R);
-    glbSetOscParams(input_errors, 0, GLB_C2R);
-    glbSetOscParams(input_errors, 0, GLB_C3R);
-    glbSetOscParams(input_errors, 0, GLB_MU1R);
-    glbSetOscParams(input_errors, 0, GLB_MU2R);
-    glbSetOscParams(input_errors, 0, GLB_MU3R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C1R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C2R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C3R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU3R);
 
     /* Initialize parameter and projection vector(s) */
     glb_params test_values = glbAllocParams();
@@ -99,13 +101,13 @@ int main(int argc, char* argv[]) {
 
     /*Set up the Projection  */
     glbDefineProjection(T2K_projection, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_R);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_C1R);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_C2R);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_C3R);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_MU1R);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_MU2R);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, GLB_MU3R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C1R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C2R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C3R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_MU1R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_MU2R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_MU3R);
     glbSetDensityProjectionFlag(T2K_projection, GLB_FIXED, GLB_ALL);
     glbSetProjection(T2K_projection);
 
@@ -224,7 +226,7 @@ int main(int argc, char* argv[]) {
     MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (rank == 0) {
-        InitOutput(MYFILE, "");
+        outputFiles.InitOutput(MYFILE, "");
         double chi_min = global_chi_min;
         double theta23_min = 0.0;
         double deltacp_min = 0.0;
@@ -235,7 +237,7 @@ int main(int argc, char* argv[]) {
             double x_out = xmin + x_idx * dx;
             double y_out = ymin + y_idx * dy;
             res = all_res[idx];
-            AddToOutput(x_out, y_out, res);
+            outputFiles.AddToOutput(x_out, y_out, res);
             if (res < chi_min) {
                 chi_min = res;
                 theta23_min = asin(sqrt(x_out));
