@@ -116,10 +116,10 @@ int main(int argc, char* argv[]) {
 
     double xmin = 0.35;
     double xmax = 0.65;
-    int xsteps = 100;
+    int xsteps = 101;
     double ymin = 0;
     double ymax = 2 * M_PI;
-    int ysteps = 100;
+    int ysteps = 101;
     int total_tasks = xsteps * ysteps;
     double dx = (xmax - xmin) / xsteps;
     double dy = (ymax - ymin) / ysteps;
@@ -193,14 +193,11 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    /* **新增：MPI_Barrier 同步所有进程** */
     MPI_Barrier(MPI_COMM_WORLD);
 
     double global_chi_min, global_theta23_min, global_deltacp_min;
     MPI_Allreduce(&local_chi_min, &global_chi_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-    // 注意：theta23/deltacp_min需对应min位置，实际实现中可广播或额外gather；这里简化假设rank0有
 
-    /* **新增：收集所有res到rank0** */
     double* all_res = NULL;
     if (rank == 0) {
         all_res = (double*)malloc(total_tasks * sizeof(double));
@@ -227,7 +224,6 @@ int main(int argc, char* argv[]) {
     MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (rank == 0) {
-        // 重组并输出
         InitOutput(MYFILE, "");
         double chi_min = global_chi_min;
         double theta23_min = 0.0;
