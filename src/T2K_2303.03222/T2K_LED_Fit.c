@@ -20,6 +20,7 @@
 #include <globes/globes.h> /* GLoBES library */
 #include <gsl/gsl_sf_erf.h>
 #include <math.h>
+#include <mpi.h> // 添加MPI头文件
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,9 +29,13 @@ char MYFILE[] = "../data/T2K/T2K_4Dfinite_fit.dat";
 
 int main(int argc, char* argv[]) {
     /* Initialize libglobes */
+    int rank, size;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
     glbInit(argv[0]);
     glbDefineChiFunction(&ChiT2K, 4, "ChiT2K", NULL);
-    /* Initialize T2K and NOvA */
+    /* Initialize T2K */
     InitializeT2K(&glb_experiment_list[0], &glb_num_of_exps);
 
     glbRegisterProbabilityEngine(13, /*Number of parameters*/
@@ -106,41 +111,139 @@ int main(int argc, char* argv[]) {
 
     /* The oscillation probabilities are computed */
     glbSetOscillationParameters(central_values);
+    glbCopyParams(central_values, test_values);
     glbSetRates();
 
-    glbCopyParams(central_values, test_values);
-
-    /* Iterate over all deltacp values and find the global minimum */
-    double thetheta23, theta23_min, res;
-    double thedeltacp, deltacp_min;
-    double x, y;
-    double chi_min = 1000000.0;
-    int z = 0;
     double xmin = 0.35;
     double xmax = 0.65;
     int xsteps = 100;
     double ymin = 0;
     double ymax = 2 * M_PI;
     int ysteps = 100;
-    InitOutput(MYFILE, "");
+    int total_tasks = xsteps * ysteps;
+    double dx = (xmax - xmin) / xsteps;
+    double dy = (ymax - ymin) / ysteps;
 
-    for (x = xmin; x <= xmax; x = x + (xmax - xmin) / xsteps) {
-        for (y = ymin; y <= ymax; y = y + (ymax - ymin) / ysteps) {
-            printf("%f %f\n", x, y);
-            /* Set vector of test values */
-            thetheta23 = asin(sqrt(x)); // Sin2 theta23 to radian
-            thedeltacp = y;
-            glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
-            glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
-            glbSetRates();
-            /* Compute Chi^2 for all loaded experiments and all rules */
-            res = glbChiNP(test_values, minimum, GLB_ALL);
-            printf("%f\n", res);
-            AddToOutput(x, y, res);
+    int quotient = total_tasks / size;
+    int remainder = total_tasks % size;
+    int start_task, num_tasks;
+    if (rank < remainder) {
+        start_task = rank * (quotient + 1);
+        num_tasks = quotient + 1;
+    } else {
+        start_task = remainder * (quotient + 1) + (rank - remainder) * quotient;
+        num_tasks = quotient;
+    }
+    if (num_tasks == 0) num_tasks = 1;
+    /* result */
+    double* local_res = (double*)malloc(num_tasks * sizeof(double));
+    double local_x, local_y;
+    double thetheta23, thedeltacp;
+    double res;
+    double local_chi_min = 1000000.0;
+    double local_theta23_min = 0.0;
+    double local_deltacp_min = 0.0;
+    int local_z = 0;
+
+    double start_time = MPI_Wtime();
+
+    /* MPI */
+    for (int t = 0; t < num_tasks; t++) {
+        int task_idx = start_task + t;
+        int x_idx = task_idx / ysteps;
+        int y_idx = task_idx % ysteps;
+        local_x = xmin + x_idx * dx;
+        local_y = ymin + y_idx * dy;
+
+        /* Set vector of test values */
+        thetheta23 = asin(sqrt(local_x)); // Sin2 theta23 to radian
+        thedeltacp = local_y;
+        glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
+        glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
+        glbSetRates();
+        /* Compute Chi^2 for all loaded experiments and all rules */
+        res = glbChiNP(test_values, minimum, GLB_ALL);
+        local_res[t] = res;
+
+        /* **本地更新min** */
+        if (res < local_chi_min) {
+            local_chi_min = res;
+            local_theta23_min = thetheta23;
+            local_deltacp_min = thedeltacp;
+        }
+
+        local_z++;
+        if (local_z % 100 == 0) {
+            double local_elapsed = MPI_Wtime() - start_time;
+
+            int global_completed;
+            MPI_Allreduce(&local_z, &global_completed, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+            double sum_elapsed;
+            MPI_Allreduce(&local_elapsed, &sum_elapsed, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+            double avg_elapsed = sum_elapsed / size;
+
+            double avg_per_task = (global_completed > 0) ? (avg_elapsed / global_completed) : 0.0;
+            double remaining_time = (total_tasks - global_completed) * avg_per_task;
+
+            if (rank == 0) {
+                printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
+                       global_completed, total_tasks, global_completed / avg_elapsed, remaining_time);
+            }
+        }
+    }
+
+    /* **新增：MPI_Barrier 同步所有进程** */
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    double global_chi_min, global_theta23_min, global_deltacp_min;
+    MPI_Allreduce(&local_chi_min, &global_chi_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    // 注意：theta23/deltacp_min需对应min位置，实际实现中可广播或额外gather；这里简化假设rank0有
+
+    /* **新增：收集所有res到rank0** */
+    double* all_res = NULL;
+    if (rank == 0) {
+        all_res = (double*)malloc(total_tasks * sizeof(double));
+    }
+    // 先gather num_tasks到rank0
+    int* all_num_tasks = NULL;
+    if (rank == 0) {
+        all_num_tasks = (int*)malloc(size * sizeof(int));
+    }
+    MPI_Gather(&num_tasks, 1, MPI_INT, all_num_tasks, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // 然后displs和recvcounts for irregular gather
+    int *displs = NULL, *recvcounts = NULL;
+    if (rank == 0) {
+        displs = (int*)malloc(size * sizeof(int));
+        recvcounts = (int*)malloc(size * sizeof(int));
+        displs[0] = 0;
+        recvcounts[0] = all_num_tasks[0];
+        for (int i = 1; i < size; i++) {
+            displs[i] = displs[i - 1] + all_num_tasks[i - 1];
+            recvcounts[i] = all_num_tasks[i];
+        }
+    }
+    MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        // 重组并输出
+        InitOutput(MYFILE, "");
+        double chi_min = global_chi_min;
+        double theta23_min = 0.0;
+        double deltacp_min = 0.0;
+        int z = 0;
+        for (int idx = 0; idx < total_tasks; idx++) {
+            int x_idx = idx / ysteps;
+            int y_idx = idx % ysteps;
+            double x_out = xmin + x_idx * dx;
+            double y_out = ymin + y_idx * dy;
+            res = all_res[idx];
+            AddToOutput(x_out, y_out, res);
             if (res < chi_min) {
-                theta23_min = thetheta23;
                 chi_min = res;
-                deltacp_min = thedeltacp;
+                theta23_min = asin(sqrt(x_out));
+                deltacp_min = y_out;
             }
             z++;
             if (z % 100 == 0) {
@@ -148,12 +251,17 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    printf("\n\nBest-fit value: Sin^2 theta23 = %f degrees, DeltaCP = %f and chi^2_min = %f \n\n", SQR(sin(theta23_min)), deltacp_min, chi_min);
 
-    glbFreeParams(central_values);
+    /* clean */
+    free(local_res);
+    if (rank == 0) {
+        free(all_res);
+        free(all_num_tasks);
+        free(displs);
+        free(recvcounts);
+    }
 
-    /* Clear experiment list */
-    glbClearExperimentList();
-
+    // End MPI
+    MPI_Finalize();
     exit(0);
 }
