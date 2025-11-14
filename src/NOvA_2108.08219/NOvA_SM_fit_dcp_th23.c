@@ -5,15 +5,19 @@
 
 #define _GNU_SOURCE
 #include <math.h>
+#include <mpi.h> // 添加MPI头文件
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #define atoa(x) #x
 
 #include "NOvA_setup.h"
+#include "myio.h" /* my input-output routines */
 
 #include <globes/globes.h> // GLoBES library
+
+char MYFILEN1[] = "../data/NOvA/NOvA_fit_data_normal.dat";
+char MYFILEI1[] = "../data/NOvA/NOvA_fit_data_inverted.dat";
 
 static int global_counter = 0;
 static int nexp = 1, nexpmu = 1;
@@ -86,14 +90,6 @@ void set_proj_all_fixed(glb_projection in_proje) {
     glbSetDensityProjectionFlag(in_proje, GLB_FIXED, GLB_ALL);
 }
 
-/* Set up an all-free projection (except solar parameters) */
-void set_proj_SM(glb_projection in_proje) {
-    set_proj_all_fixed(in_proje);
-    /* THETA_12, THETA_13, THETA_23, DELTA_CP,  DM_21,     DM_31 */
-    glbDefineProjection(in_proje, GLB_FIXED, GLB_FIXED, GLB_FREE, GLB_FREE, GLB_FIXED, GLB_FREE);
-    glbSetDensityProjectionFlag(in_proje, GLB_FIXED, GLB_ALL);
-}
-
 /* Set up a projection on thet23-deltaCP plane */
 void set_proj_SM_TH23_DCP_2D(glb_projection in_proje) {
     // set_proj_all_fixed(in_proje);
@@ -107,6 +103,10 @@ void set_proj_SM_TH23_DCP_2D(glb_projection in_proje) {
 ///////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[]) {
+    int rank, size;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
     /* Initialize libglobes */
     glbInit(argv[0]);
 
@@ -137,9 +137,6 @@ int main(int argc, char* argv[]) {
 
     /* Set prior values (no priors, only 5% uncertainty for matter density) */
     set_osc_params_zero(input_errors);
-    glbSetOscParams(input_errors, 0.27, GLB_DELTA_CP);
-    glbSetOscParams(input_errors, 1 / (sqrt(1 - 0.307)) * 1 / (2 * sqrt(0.307)) * 0.0011, GLB_THETA_13);
-    glbSetOscParams(input_errors, 0.07e-3, GLB_DM_31);
     glbSetDensityParams(input_errors, 0.05, GLB_ALL);
 
     /* Insert central values and input errors into GLoBES */
@@ -163,62 +160,188 @@ int main(int argc, char* argv[]) {
     /* Initiate a parameter vector for the scan */
     glbCopyParams(central_values, test_values);
 
-    /* Iterate over all theta23 and deltacp values */
-    double dcp, sin2th23, res;
-    int Nsteps = 101;
-    double bar_aux = 0.0;
-    double percentage = 100.0 * 1.0 / Nsteps;
-    int aux_percent = 0;
+    // /* Iterate over all theta23 and deltacp values */
+    // double dcp, sin2th23, res;
+    // int Nsteps = 101;
+    // double bar_aux = 0.0;
+    // double percentage = 100.0 * 1.0 / Nsteps;
+    // int aux_percent = 0;
 
-    FILE* fp;
+    // FILE* fp;
 
-    char str[100];
+    // char str[100];
 
-    double dcp_ini = 0.0;
-    double dcp_fin = 2.0;
-    double sin2th23_ini = 0.28;
-    double sin2th23_fin = 0.72;
+    // double dcp_ini = 0.0;
+    // double dcp_fin = 2.0;
+    // double sin2th23_ini = 0.28;
+    // double sin2th23_fin = 0.72;
 
-    double dcpmin, t23min, d31min, chimin;
+    // double dcpmin, t23min, d31min, chimin;
 
-    // Start the run
-    printf("\n Commencing fit to NOvA data...\n");
-    strcpy(str, "../data/NOvA/NOvA_fit_data_normal.dat");
-    fp = fopen(str, "w+");
+    // // Start the run
+    // printf("\n Commencing fit to NOvA data...\n");
+    // strcpy(str, "../data/NOvA/NOvA_fit_data_normal.dat");
+    // fp = fopen(str, "w+");
 
-    fflush(stdout);
+    // fflush(stdout);
 
-    for (int icp = 0; icp < Nsteps; icp++) {
-        aux_percent = (int)100.0 * icp / (Nsteps - 1);
-        percent_bar(&bar_aux, percentage, aux_percent, 1.0);
+    // for (int icp = 0; icp < Nsteps; icp++) {
+    //     aux_percent = (int)100.0 * icp / (Nsteps - 1);
+    //     percent_bar(&bar_aux, percentage, aux_percent, 1.0);
 
-        dcp = dcp_ini + (dcp_fin - dcp_ini) * icp / (Nsteps - 1);
-        glbSetOscParams(test_values, dcp * M_PI, GLB_DELTA_CP);
+    // dcp = dcp_ini + (dcp_fin - dcp_ini) * icp / (Nsteps - 1);
+    // glbSetOscParams(test_values, dcp * M_PI, GLB_DELTA_CP);
 
-        for (int ith = 0; ith < Nsteps; ith++) {
-            sin2th23 = sin2th23_ini + (sin2th23_fin - sin2th23_ini) * ith / (Nsteps - 1);
-            glbSetOscParams(test_values, asin(sqrt(sin2th23)), GLB_THETA_23);
-            res = glbChiNP(test_values, minimum, GLB_ALL);
+    // for (int ith = 0; ith < Nsteps; ith++) {
+    //     sin2th23 = sin2th23_ini + (sin2th23_fin - sin2th23_ini) * ith / (Nsteps - 1);
+    //     glbSetOscParams(test_values, asin(sqrt(sin2th23)), GLB_THETA_23);
+    //     res = glbChiNP(test_values, minimum, GLB_ALL);
 
-            fprintf(fp, "%.4f\t%.4f\t%.4f", dcp, sin2th23, res);
+    // fprintf(fp, "%.4f\t%.4f\t%.4f", dcp, sin2th23, res);
 
-            // this is to remove the space in the last line.
-            if (ith < Nsteps - 1 || icp < Nsteps - 1)
-                fprintf(fp, "\n");
+    // // this is to remove the space in the last line.
+    // if (ith < Nsteps - 1 || icp < Nsteps - 1)
+    //     fprintf(fp, "\n");
+    // }
+    // }
+
+    // percent_bar(&bar_aux, 100, aux_percent, 1.0);
+    // printf("\n \t Fitting completed for Normal Ordering.\n");
+    // fclose(fp);
+
+    double xmin = 0.35;
+    double xmax = 0.65;
+    int xsteps = 101;
+    double ymin = 0;
+    double ymax = 2 * M_PI;
+    int ysteps = 101;
+    int total_tasks = xsteps * ysteps;
+    double dx = (xmax - xmin) / xsteps;
+    double dy = (ymax - ymin) / ysteps;
+
+    int quotient = total_tasks / size;
+    int remainder = total_tasks % size;
+    int start_task, num_tasks;
+    if (rank < remainder) {
+        start_task = rank * (quotient + 1);
+        num_tasks = quotient + 1;
+    } else {
+        start_task = remainder * (quotient + 1) + (rank - remainder) * quotient;
+        num_tasks = quotient;
+    }
+    if (num_tasks == 0) num_tasks = 1;
+    /* result */
+    double* local_res = (double*)malloc(num_tasks * sizeof(double));
+    double local_x, local_y;
+    double thetheta23, thedeltacp;
+    double res;
+    double local_chi_min = 1000000.0;
+    double local_theta23_min = 0.0;
+    double local_deltacp_min = 0.0;
+    int local_z = 0;
+
+    double start_time = MPI_Wtime();
+
+    /* MPI */
+    for (int t = 0; t < num_tasks; t++) {
+        int task_idx = start_task + t;
+        int x_idx = task_idx / ysteps;
+        int y_idx = task_idx % ysteps;
+        local_x = xmin + x_idx * dx;
+        local_y = ymin + y_idx * dy;
+
+        /* Set vector of test values */
+        thetheta23 = asin(sqrt(local_x)); // Sin2 theta23 to radian
+        thedeltacp = local_y;
+        glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
+        glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
+        glbSetRates();
+        /* Compute Chi^2 for all loaded experiments and all rules */
+        res = glbChiNP(test_values, minimum, GLB_ALL);
+        local_res[t] = res;
+
+        /* **本地更新min** */
+        if (res < local_chi_min) {
+            local_chi_min = res;
+            local_theta23_min = thetheta23;
+            local_deltacp_min = thedeltacp;
+        }
+
+        local_z++;
+        if (local_z % 100 == 0) {
+            double local_elapsed = MPI_Wtime() - start_time;
+
+            int global_completed;
+            MPI_Allreduce(&local_z, &global_completed, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+            double sum_elapsed;
+            MPI_Allreduce(&local_elapsed, &sum_elapsed, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+            double avg_elapsed = sum_elapsed / size;
+
+            double avg_per_task = (global_completed > 0) ? (avg_elapsed / global_completed) : 0.0;
+            double remaining_time = (total_tasks - global_completed) * avg_per_task;
+
+            if (rank == 0) {
+                printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
+                       global_completed, total_tasks, global_completed / avg_elapsed, remaining_time);
+            }
         }
     }
 
-    percent_bar(&bar_aux, 100, aux_percent, 1.0);
-    printf("\n \t Fitting completed for Normal Ordering.\n");
-    fclose(fp);
+    MPI_Barrier(MPI_COMM_WORLD);
 
-    set_proj_SM(my_projection);
-    glbSetProjection(my_projection);
-    chimin = glbChiNP(central_values, minimum, GLB_ALL);
-    dcpmin = glbGetOscParams(minimum, GLB_DELTA_CP) / M_PI;
-    t23min = square(sin(glbGetOscParams(minimum, GLB_THETA_23)));
-    d31min = glbGetOscParams(minimum, GLB_DM_31);
-    printf("\t Best-fit point: deltacp = %.4f, sin^2th23 = %.4f, dm32^2 = %.4g \t minimum chi2: %.4f\n", dcpmin, t23min, d31min + sdm, chimin);
+    double global_chi_min, global_theta23_min, global_deltacp_min;
+    MPI_Allreduce(&local_chi_min, &global_chi_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+
+    double* all_res = NULL;
+    if (rank == 0) {
+        all_res = (double*)malloc(total_tasks * sizeof(double));
+    }
+    // 先gather num_tasks到rank0
+    int* all_num_tasks = NULL;
+    if (rank == 0) {
+        all_num_tasks = (int*)malloc(size * sizeof(int));
+    }
+    MPI_Gather(&num_tasks, 1, MPI_INT, all_num_tasks, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // 然后displs和recvcounts for irregular gather
+    int *displs = NULL, *recvcounts = NULL;
+    if (rank == 0) {
+        displs = (int*)malloc(size * sizeof(int));
+        recvcounts = (int*)malloc(size * sizeof(int));
+        displs[0] = 0;
+        recvcounts[0] = all_num_tasks[0];
+        for (int i = 1; i < size; i++) {
+            displs[i] = displs[i - 1] + all_num_tasks[i - 1];
+            recvcounts[i] = all_num_tasks[i];
+        }
+    }
+    MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        InitOutput(MYFILEN1, "");
+        double chi_min = global_chi_min;
+        double theta23_min = 0.0;
+        double deltacp_min = 0.0;
+        int z = 0;
+        for (int idx = 0; idx < total_tasks; idx++) {
+            int x_idx = idx / ysteps;
+            int y_idx = idx % ysteps;
+            double x_out = xmin + x_idx * dx;
+            double y_out = ymin + y_idx * dy;
+            res = all_res[idx];
+            AddToOutput(x_out, y_out, res);
+            if (res < chi_min) {
+                chi_min = res;
+                theta23_min = asin(sqrt(x_out));
+                deltacp_min = y_out;
+            }
+            z++;
+            if (z % 100 == 0) {
+                printf("%d\n", z);
+            }
+        }
+    }
 
     // Flip hierarchy
     glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
@@ -230,42 +353,124 @@ int main(int argc, char* argv[]) {
     glbSetProjection(my_projection);
 
     glbCopyParams(central_values, test_values);
+    start_time = MPI_Wtime();
+    local_chi_min = 1000000.0;
+    local_theta23_min = 0.0;
+    local_deltacp_min = 0.0;
+    local_z = 0;
 
-    strcpy(str, "../data/NOvA/NOvA_fit_data_inverted.dat");
-    fp = fopen(str, "w+");
+    /* MPI */
+    for (int t = 0; t < num_tasks; t++) {
+        int task_idx = start_task + t;
+        int x_idx = task_idx / ysteps;
+        int y_idx = task_idx % ysteps;
+        local_x = xmin + x_idx * dx;
+        local_y = ymin + y_idx * dy;
 
-    for (int icp = 0; icp < Nsteps; icp++) {
-        aux_percent = (int)100.0 * icp / (Nsteps - 1);
-        percent_bar(&bar_aux, percentage, aux_percent, 1.0);
+        /* Set vector of test values */
+        thetheta23 = asin(sqrt(local_x)); // Sin2 theta23 to radian
+        thedeltacp = local_y;
+        glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
+        glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
+        glbSetRates();
+        /* Compute Chi^2 for all loaded experiments and all rules */
+        res = glbChiNP(test_values, minimum, GLB_ALL);
+        local_res[t] = res;
 
-        dcp = dcp_ini + (dcp_fin - dcp_ini) * icp / (Nsteps - 1);
-        glbSetOscParams(test_values, dcp * M_PI, GLB_DELTA_CP);
+        /* **本地更新min** */
+        if (res < local_chi_min) {
+            local_chi_min = res;
+            local_theta23_min = thetheta23;
+            local_deltacp_min = thedeltacp;
+        }
 
-        for (int ith = 0; ith < Nsteps; ith++) {
-            sin2th23 = sin2th23_ini + (sin2th23_fin - sin2th23_ini) * ith / (Nsteps - 1);
-            glbSetOscParams(test_values, asin(sqrt(sin2th23)), GLB_THETA_23);
-            res = glbChiNP(test_values, minimum, GLB_ALL);
+        local_z++;
+        if (local_z % 100 == 0) {
+            double local_elapsed = MPI_Wtime() - start_time;
 
-            fprintf(fp, "%.4f\t%.4f\t%.4f", dcp, sin2th23, res);
+            int global_completed = 0;
+            MPI_Allreduce(&local_z, &global_completed, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-            // this is to remove the space in the last line.
-            if (ith < Nsteps - 1 || icp < Nsteps - 1)
-                fprintf(fp, "\n");
+            double sum_elapsed;
+            MPI_Allreduce(&local_elapsed, &sum_elapsed, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+            double avg_elapsed = sum_elapsed / size;
+
+            double avg_per_task = (global_completed > 0) ? (avg_elapsed / global_completed) : 0.0;
+            double remaining_time = (total_tasks - global_completed) * avg_per_task;
+
+            if (rank == 0) {
+                printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
+                       global_completed, total_tasks, global_completed / avg_elapsed, remaining_time);
+            }
         }
     }
 
-    percent_bar(&bar_aux, 100, aux_percent, 1.0);
-    printf("\n \t Fitting completed for Inverted Ordering.\n");
-    fclose(fp);
+    MPI_Barrier(MPI_COMM_WORLD);
 
-    set_proj_SM(my_projection);
-    glbSetProjection(my_projection);
-    chimin = glbChiNP(central_values, minimum, GLB_ALL);
-    dcpmin = glbGetOscParams(minimum, GLB_DELTA_CP) / M_PI;
-    t23min = square(sin(glbGetOscParams(minimum, GLB_THETA_23)));
-    d31min = glbGetOscParams(minimum, GLB_DM_31);
-    printf("\t Best-fit point: deltacp = %.4f, sin^2th23 = %.4f, dm32^2 = %.4g \t minimum chi2: %.4f\n", dcpmin, t23min, d31min + sdm, chimin);
+    // double global_chi_min, global_theta23_min, global_deltacp_min;
+    MPI_Allreduce(&local_chi_min, &global_chi_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 
+    all_res = NULL;
+    if (rank == 0) {
+        all_res = (double*)malloc(total_tasks * sizeof(double));
+    }
+    // 先gather num_tasks到rank0
+    all_num_tasks = NULL;
+    if (rank == 0) {
+        all_num_tasks = (int*)malloc(size * sizeof(int));
+    }
+    MPI_Gather(&num_tasks, 1, MPI_INT, all_num_tasks, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // 然后displs和recvcounts for irregular gather
+    displs = NULL;
+    recvcounts = NULL;
+    if (rank == 0) {
+        displs = (int*)malloc(size * sizeof(int));
+        recvcounts = (int*)malloc(size * sizeof(int));
+        displs[0] = 0;
+        recvcounts[0] = all_num_tasks[0];
+        for (int i = 1; i < size; i++) {
+            displs[i] = displs[i - 1] + all_num_tasks[i - 1];
+            recvcounts[i] = all_num_tasks[i];
+        }
+    }
+    MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        InitOutput(MYFILEI1, "");
+        double chi_min = global_chi_min;
+        double theta23_min = 0.0;
+        double deltacp_min = 0.0;
+        int z = 0;
+        for (int idx = 0; idx < total_tasks; idx++) {
+            int x_idx = idx / ysteps;
+            int y_idx = idx % ysteps;
+            double x_out = xmin + x_idx * dx;
+            double y_out = ymin + y_idx * dy;
+            res = all_res[idx];
+            AddToOutput(x_out, y_out, res);
+            if (res < chi_min) {
+                chi_min = res;
+                theta23_min = asin(sqrt(x_out));
+                deltacp_min = y_out;
+            }
+            z++;
+            if (z % 100 == 0) {
+                printf("%d\n", z);
+            }
+        }
+    }
+
+    /* clean */
+    free(local_res);
+    if (rank == 0) {
+        free(all_res);
+        free(all_num_tasks);
+        free(displs);
+        free(recvcounts);
+    }
+
+    MPI_Finalize();
     // Destroy parameter vector(s)
     glbFreeParams(central_values);
     glbFreeParams(test_values);
