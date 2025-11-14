@@ -21,9 +21,9 @@ if(OpenBLAS_FOUND)
      target_link_libraries(T2K_SM_Fit openblas)
 endif()
 
-add_executable(T2K_LED_Fit T2K_LED_Fit.c myio.c nu5d_mat_osc.h T2K_setup.h)
+add_executable(T2K_LED_Fit T2K_LED_Fit.c++ T2K_setup.h)
 
-target_link_libraries(T2K_LED_Fit GSL::gsl globeslib MPI::MPI_C)
+target_link_libraries(T2K_LED_Fit GSL::gsl globeslib LED_Lib MPI::MPI_C)
 if(OpenBLAS_FOUND)
      target_link_libraries(T2K_LED_Fit openblas)
 endif()
