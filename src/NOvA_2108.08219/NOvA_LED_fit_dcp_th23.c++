@@ -3,21 +3,24 @@
  * ################################################################################## *
  */
 
-#define _GNU_SOURCE
+// #define _GNU_SOURCE
 #include <math.h>
 #include <mpi.h> // 添加MPI头文件
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #define atoa(x) #x
-
+extern "C" {
 #include "NOvA_setup.h"
-#include "myio.h" /* my input-output routines */
+}
+#include "ledlib/Engine/ProbabilityEngine.h++"
+#include "ledlib/IO/IO.h++" /* my input-output routines */
 
 #include <globes/globes.h> // GLoBES library
 
-char MYFILEN1[] = "../data/NOvA/NOvA_fit_data_normal.dat";
-char MYFILEI1[] = "../data/NOvA/NOvA_fit_data_inverted.dat";
+const std::string MYFILEN1 = "../data/NOvA/NOvA_fit_data_normal.dat";
+const std::string MYFILEI1 = "../data/NOvA/NOvA_fit_data_inverted.dat";
+LED::IO::Output outputFiles;
 
 static int global_counter = 0;
 static int nexp = 1, nexpmu = 1;
@@ -109,6 +112,11 @@ int main(int argc, char* argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     /* Initialize libglobes */
     glbInit(argv[0]);
+    glbRegisterProbabilityEngine(13, /*Number of parameters*/
+                                 &LED::CalProbability::my_probability_matrix,
+                                 &LED::CalProbability::my_set_oscillation_parameters,
+                                 &LED::CalProbability::my_get_oscillation_parameters,
+                                 NULL);
 
     /* Initialize experiments */
     InitializeNOvA(&glb_experiment_list[0], &glb_num_of_exps);
@@ -123,11 +131,21 @@ int main(int argc, char* argv[]) {
     double deltacp = 0.82 * M_PI;
     double sdm = 7.53e-5;
     double ldm = 2.41e-3 + sdm;
+    glb_params central_values = glbAllocParams();
+    glb_params input_errors = glbAllocParams();
+
+    glbSetOscParams(central_values, 10, LED::CalProbability::GLB_R);
+    glbSetOscParams(central_values, 40, LED::CalProbability::GLB_C1R);
+    glbSetOscParams(central_values, -40, LED::CalProbability::GLB_C2R);
+    glbSetOscParams(central_values, -40, LED::CalProbability::GLB_C3R);
+    glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(central_values, 0.0275, LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(central_values, 0.1603, LED::CalProbability::GLB_MU3R); // T2K
+    LED::CalProbability::SetModesCutoff(50);
 
     /* Initialize parameter vectors */
-    glb_params central_values = glbAllocParams();
+
     glb_params test_values = glbAllocParams();
-    glb_params input_errors = glbAllocParams();
     glb_params minimum = glbAllocParams();
 
     /* Set central values */
@@ -137,6 +155,13 @@ int main(int argc, char* argv[]) {
 
     /* Set prior values (no priors, only 5% uncertainty for matter density) */
     set_osc_params_zero(input_errors);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C1R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C2R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C3R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU3R);
     glbSetDensityParams(input_errors, 0.05, GLB_ALL);
 
     /* Insert central values and input errors into GLoBES */
@@ -159,55 +184,6 @@ int main(int argc, char* argv[]) {
 
     /* Initiate a parameter vector for the scan */
     glbCopyParams(central_values, test_values);
-
-    // /* Iterate over all theta23 and deltacp values */
-    // double dcp, sin2th23, res;
-    // int Nsteps = 101;
-    // double bar_aux = 0.0;
-    // double percentage = 100.0 * 1.0 / Nsteps;
-    // int aux_percent = 0;
-
-    // FILE* fp;
-
-    // char str[100];
-
-    // double dcp_ini = 0.0;
-    // double dcp_fin = 2.0;
-    // double sin2th23_ini = 0.28;
-    // double sin2th23_fin = 0.72;
-
-    // double dcpmin, t23min, d31min, chimin;
-
-    // // Start the run
-    // printf("\n Commencing fit to NOvA data...\n");
-    // strcpy(str, "../data/NOvA/NOvA_fit_data_normal.dat");
-    // fp = fopen(str, "w+");
-
-    // fflush(stdout);
-
-    // for (int icp = 0; icp < Nsteps; icp++) {
-    //     aux_percent = (int)100.0 * icp / (Nsteps - 1);
-    //     percent_bar(&bar_aux, percentage, aux_percent, 1.0);
-
-    // dcp = dcp_ini + (dcp_fin - dcp_ini) * icp / (Nsteps - 1);
-    // glbSetOscParams(test_values, dcp * M_PI, GLB_DELTA_CP);
-
-    // for (int ith = 0; ith < Nsteps; ith++) {
-    //     sin2th23 = sin2th23_ini + (sin2th23_fin - sin2th23_ini) * ith / (Nsteps - 1);
-    //     glbSetOscParams(test_values, asin(sqrt(sin2th23)), GLB_THETA_23);
-    //     res = glbChiNP(test_values, minimum, GLB_ALL);
-
-    // fprintf(fp, "%.4f\t%.4f\t%.4f", dcp, sin2th23, res);
-
-    // // this is to remove the space in the last line.
-    // if (ith < Nsteps - 1 || icp < Nsteps - 1)
-    //     fprintf(fp, "\n");
-    // }
-    // }
-
-    // percent_bar(&bar_aux, 100, aux_percent, 1.0);
-    // printf("\n \t Fitting completed for Normal Ordering.\n");
-    // fclose(fp);
 
     double xmin = 0.35;
     double xmax = 0.65;
@@ -238,7 +214,6 @@ int main(int argc, char* argv[]) {
     double local_chi_min = 1000000.0;
     double local_theta23_min = 0.0;
     double local_deltacp_min = 0.0;
-    int local_z = 0;
 
     double start_time = MPI_Wtime();
 
@@ -255,7 +230,6 @@ int main(int argc, char* argv[]) {
         thedeltacp = local_y;
         glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
         glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
-        glbSetRates();
         /* Compute Chi^2 for all loaded experiments and all rules */
         res = glbChiNP(test_values, minimum, GLB_ALL);
         local_res[t] = res;
@@ -267,24 +241,17 @@ int main(int argc, char* argv[]) {
             local_deltacp_min = thedeltacp;
         }
 
-        local_z++;
-        if (local_z % 100 == 0) {
-            double local_elapsed = MPI_Wtime() - start_time;
+        double local_elapsed = MPI_Wtime() - start_time;
 
-            int global_completed;
-            MPI_Allreduce(&local_z, &global_completed, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        int local_completed = t + 1;
+        int global_completed = local_completed * size;
+        double tasks_per_sec = (double)local_completed / local_elapsed;
+        int remaining_tasks = total_tasks - global_completed;
+        double remaining_time = remaining_tasks / tasks_per_sec / size;
 
-            double sum_elapsed;
-            MPI_Allreduce(&local_elapsed, &sum_elapsed, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-            double avg_elapsed = sum_elapsed / size;
-
-            double avg_per_task = (global_completed > 0) ? (avg_elapsed / global_completed) : 0.0;
-            double remaining_time = (total_tasks - global_completed) * avg_per_task;
-
-            if (rank == 0) {
-                printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
-                       global_completed, total_tasks, global_completed / avg_elapsed, remaining_time);
-            }
+        if (rank == 0) {
+            printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
+                   global_completed, total_tasks, tasks_per_sec, remaining_time);
         }
     }
 
@@ -319,7 +286,7 @@ int main(int argc, char* argv[]) {
     MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (rank == 0) {
-        InitOutput(MYFILEN1, "");
+        outputFiles.InitOutput(MYFILEN1, "");
         double chi_min = global_chi_min;
         double theta23_min = 0.0;
         double deltacp_min = 0.0;
@@ -330,7 +297,7 @@ int main(int argc, char* argv[]) {
             double x_out = xmin + x_idx * dx;
             double y_out = ymin + y_idx * dy;
             res = all_res[idx];
-            AddToOutput(x_out, y_out, res);
+            outputFiles.AddToOutput(x_out, y_out, res);
             if (res < chi_min) {
                 chi_min = res;
                 theta23_min = asin(sqrt(x_out));
@@ -357,7 +324,6 @@ int main(int argc, char* argv[]) {
     local_chi_min = 1000000.0;
     local_theta23_min = 0.0;
     local_deltacp_min = 0.0;
-    local_z = 0;
 
     /* MPI */
     for (int t = 0; t < num_tasks; t++) {
@@ -372,7 +338,6 @@ int main(int argc, char* argv[]) {
         thedeltacp = local_y;
         glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
         glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
-        glbSetRates();
         /* Compute Chi^2 for all loaded experiments and all rules */
         res = glbChiNP(test_values, minimum, GLB_ALL);
         local_res[t] = res;
@@ -384,24 +349,17 @@ int main(int argc, char* argv[]) {
             local_deltacp_min = thedeltacp;
         }
 
-        local_z++;
-        if (local_z % 100 == 0) {
-            double local_elapsed = MPI_Wtime() - start_time;
+        double local_elapsed = MPI_Wtime() - start_time;
 
-            int global_completed = 0;
-            MPI_Allreduce(&local_z, &global_completed, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        int local_completed = t + 1;
+        int global_completed = local_completed * size;
+        double tasks_per_sec = (double)local_completed / local_elapsed;
+        int remaining_tasks = total_tasks - global_completed;
+        double remaining_time = remaining_tasks / tasks_per_sec / size;
 
-            double sum_elapsed;
-            MPI_Allreduce(&local_elapsed, &sum_elapsed, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-            double avg_elapsed = sum_elapsed / size;
-
-            double avg_per_task = (global_completed > 0) ? (avg_elapsed / global_completed) : 0.0;
-            double remaining_time = (total_tasks - global_completed) * avg_per_task;
-
-            if (rank == 0) {
-                printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
-                       global_completed, total_tasks, global_completed / avg_elapsed, remaining_time);
-            }
+        if (rank == 0) {
+            printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
+                   global_completed, total_tasks, tasks_per_sec, remaining_time);
         }
     }
 
@@ -437,7 +395,7 @@ int main(int argc, char* argv[]) {
     MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (rank == 0) {
-        InitOutput(MYFILEI1, "");
+        outputFiles.InitOutput(MYFILEI1, "");
         double chi_min = global_chi_min;
         double theta23_min = 0.0;
         double deltacp_min = 0.0;
@@ -448,7 +406,7 @@ int main(int argc, char* argv[]) {
             double x_out = xmin + x_idx * dx;
             double y_out = ymin + y_idx * dy;
             res = all_res[idx];
-            AddToOutput(x_out, y_out, res);
+            outputFiles.AddToOutput(x_out, y_out, res);
             if (res < chi_min) {
                 chi_min = res;
                 theta23_min = asin(sqrt(x_out));

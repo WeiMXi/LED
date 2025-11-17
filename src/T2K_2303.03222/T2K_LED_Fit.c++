@@ -148,6 +148,7 @@ int main(int argc, char* argv[]) {
     int local_z = 0;
 
     double start_time = MPI_Wtime();
+    outputFiles.InitOutput(MYFILE, "");
 
     /* MPI */
     for (int t = 0; t < num_tasks; t++) {
@@ -162,9 +163,11 @@ int main(int argc, char* argv[]) {
         thedeltacp = local_y;
         glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
         glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
-        glbSetRates();
+        // glbSetRates();
         /* Compute Chi^2 for all loaded experiments and all rules */
-        res = glbChiNP(test_values, minimum, GLB_ALL);
+        // res = glbChiNP(test_values, minimum, GLB_ALL);
+        res = 1;
+        // printf("%f %f %f\n", thetheta23, thedeltacp, res);
         local_res[t] = res;
 
         /* **本地更新min** */
@@ -175,23 +178,18 @@ int main(int argc, char* argv[]) {
         }
 
         local_z++;
-        if (local_z % 100 == 0) {
-            double local_elapsed = MPI_Wtime() - start_time;
+        // if (local_z % 100 == 0) {
+        double local_elapsed = MPI_Wtime() - start_time;
 
-            int global_completed;
-            MPI_Allreduce(&local_z, &global_completed, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        int local_completed = t + 1;                                    // 本地已完成任务数
+        int global_completed = (long long)local_completed * size;       // 全局完成任务数（近似）
+        double tasks_per_sec = (double)local_completed / local_elapsed; // 平均任务/秒（本地≈全局）
+        double remaining_tasks = total_tasks - global_completed;
+        double remaining_time = remaining_tasks / tasks_per_sec; // 剩余时间（秒）
 
-            double sum_elapsed;
-            MPI_Allreduce(&local_elapsed, &sum_elapsed, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-            double avg_elapsed = sum_elapsed / size;
-
-            double avg_per_task = (global_completed > 0) ? (avg_elapsed / global_completed) : 0.0;
-            double remaining_time = (total_tasks - global_completed) * avg_per_task;
-
-            if (rank == 0) {
-                printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
-                       global_completed, total_tasks, global_completed / avg_elapsed, remaining_time);
-            }
+        if (rank == 0) {
+            printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
+                   global_completed, total_tasks, tasks_per_sec, remaining_time);
         }
     }
 
@@ -211,7 +209,6 @@ int main(int argc, char* argv[]) {
     }
     MPI_Gather(&num_tasks, 1, MPI_INT, all_num_tasks, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    // 然后displs和recvcounts for irregular gather
     int *displs = NULL, *recvcounts = NULL;
     if (rank == 0) {
         displs = (int*)malloc(size * sizeof(int));
@@ -224,12 +221,8 @@ int main(int argc, char* argv[]) {
         }
     }
     MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
     if (rank == 0) {
         outputFiles.InitOutput(MYFILE, "");
-        double chi_min = global_chi_min;
-        double theta23_min = 0.0;
-        double deltacp_min = 0.0;
         int z = 0;
         for (int idx = 0; idx < total_tasks; idx++) {
             int x_idx = idx / ysteps;
@@ -238,11 +231,6 @@ int main(int argc, char* argv[]) {
             double y_out = ymin + y_idx * dy;
             res = all_res[idx];
             outputFiles.AddToOutput(x_out, y_out, res);
-            if (res < chi_min) {
-                chi_min = res;
-                theta23_min = asin(sqrt(x_out));
-                deltacp_min = y_out;
-            }
             z++;
             if (z % 100 == 0) {
                 printf("%d\n", z);
