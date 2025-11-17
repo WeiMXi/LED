@@ -18,8 +18,8 @@ extern "C" {
 
 #include <globes/globes.h> // GLoBES library
 
-const std::string MYFILEN1 = "../data/NOvA/NOvA_fit_data_normal.dat";
-const std::string MYFILEI1 = "../data/NOvA/NOvA_fit_data_inverted.dat";
+const std::string MYFILEN1 = "../data/NOvA/NOvA_fit_4Dfinite_normal.dat";
+const std::string MYFILEI1 = "../data/NOvA/NOvA_fit_4Dfinite_inverted.dat";
 LED::IO::Output outputFiles;
 
 static int global_counter = 0;
