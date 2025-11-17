@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, -40, LED::CalProbability::GLB_C3R);
     glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU1R);
     glbSetOscParams(central_values, 0.0275, LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(central_values, 0.1603, LED::CalProbability::GLB_MU3R); // T2K
+    glbSetOscParams(central_values, 0.1598, LED::CalProbability::GLB_MU3R); // NOvA
     LED::CalProbability::SetModesCutoff(50);
 
     /* Initialize parameter vectors */
@@ -175,6 +175,13 @@ int main(int argc, char* argv[]) {
     /* Set projection as previously defined */
     glb_projection my_projection = glbAllocProjection();
     set_proj_SM_TH23_DCP_2D(my_projection); /* SM fit onto TH23-DCP plane */
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C1R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C2R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C3R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU1R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU2R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU3R);
 
     glbSetProjection(my_projection);
 
@@ -232,6 +239,7 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
         /* Compute Chi^2 for all loaded experiments and all rules */
         res = glbChiNP(test_values, minimum, GLB_ALL);
+        printf("%f %f %f\n", local_x, local_y, res);
         local_res[t] = res;
 
         /* **本地更新min** */
@@ -340,6 +348,7 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
         /* Compute Chi^2 for all loaded experiments and all rules */
         res = glbChiNP(test_values, minimum, GLB_ALL);
+        printf("%f %f %f\n", local_x, local_y, res);
         local_res[t] = res;
 
         /* **本地更新min** */
