@@ -58,24 +58,6 @@ double my_prior(const glb_params in, void* user_data) {
     return pv;
 }
 
-void percent_bar(double* check_bar, double DeltaP, int current, double print_percent) {
-    *check_bar = *check_bar + DeltaP;
-    int aux_percent;
-    if (*check_bar > print_percent) {
-        printf("#");
-
-        printf("](%i %%)", current);
-        if (current < 10)
-            printf("\b\b\b\b\b\b");
-        else if (current <= 100)
-            printf("\b\b\b\b\b\b\b");
-        else
-            printf("\b\b\b\b\b\b\b\b");
-        fflush(stdout);
-        *check_bar = 0.0;
-    }
-}
-
 void set_osc_params_zero(glb_params in_params) {
     for (int i = 0; i < n_params; i++)
         glbSetOscParams(in_params, 0.0, i);
@@ -97,7 +79,7 @@ void set_proj_all_fixed(glb_projection in_proje) {
 void set_proj_SM_TH23_DCP_2D(glb_projection in_proje) {
     // set_proj_all_fixed(in_proje);
     /* THETA_12, THETA_13, THETA_23, DELTA_CP,  DM_21,     DM_31 */
-    glbDefineProjection(in_proje, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FREE);
+    glbDefineProjection(in_proje, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
     glbSetDensityProjectionFlag(in_proje, GLB_FIXED, GLB_ALL);
 }
 
@@ -321,10 +303,18 @@ int main(int argc, char* argv[]) {
     // Flip hierarchy
     glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
     glbSetOscParams(central_values, 1.52 * M_PI, GLB_DELTA_CP);
-    glbSetOscParams(central_values, -2.45e-3 + sdm, GLB_DM_31); // DM31 = DM32 + DM21
+    glbSetOscParams(central_values, -2.45e-3 + sdm, GLB_DM_31);              // DM31 = DM32 + DM21
+    glbSetOscParams(central_values, -0.1559, LED::CalProbability::GLB_MU3R); // NOvA
     glbSetOscillationParameters(central_values);
     glbSetRates();
     set_proj_SM_TH23_DCP_2D(my_projection);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C1R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C2R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C3R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU1R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU2R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU3R);
     glbSetProjection(my_projection);
 
     glbCopyParams(central_values, test_values);
