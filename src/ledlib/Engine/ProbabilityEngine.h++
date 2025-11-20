@@ -107,9 +107,13 @@ inline void SetModesCutoff(const int n) {
 inline double mum_to_eVinv(const double x) { return x * 5.06773; }
 inline double eVinv_to_mum(const double x) { return x / 5.06773; }
 
-inline double CalMuiR(const double r, const double ciR, const double delmi12) {
+inline double CalMuiR(const double r, const double ciR, const double m12, const double mi2) {
     double r_eVinv = mum_to_eVinv(r);
-    return std::sqrt(delmi12 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
+    return std::sqrt((mi2 - m12) * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
+}
+
+inline double CalLightestm2(const double c1R, const double mu1R) {
+    return std::exp(-2 * std::numbers::pi * std::abs(c1R)) * (2 * std::numbers::pi * std::abs(c1R)) / mu1R;
 }
 
 inline void make_PMNS(gsl_matrix_complex* U, const int cp_sign) {

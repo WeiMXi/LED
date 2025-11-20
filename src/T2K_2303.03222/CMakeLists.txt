@@ -27,3 +27,10 @@ target_link_libraries(T2K_LED_Fit GSL::gsl globeslib LED_Lib MPI::MPI_C)
 if(OpenBLAS_FOUND)
      target_link_libraries(T2K_LED_Fit openblas)
 endif()
+
+add_executable(T2K_LED_Scan T2K_LED_Scan.c++ T2K_setup.h)
+
+target_link_libraries(T2K_LED_Scan GSL::gsl globeslib LED_Lib MPI::MPI_C)
+if(OpenBLAS_FOUND)
+     target_link_libraries(T2K_LED_Scan openblas)
+endif()
