@@ -27,7 +27,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-const std::string MYFILE = "../data/T2K/T2K_4Dfinite_fit.dat";
+const std::string MYFILE = "../data/T2K/T2K_LED_scan.dat";
 LED::IO::Output outputFiles;
 
 int main(int argc, char* argv[]) {
@@ -57,14 +57,14 @@ int main(int argc, char* argv[]) {
     double deltacp = -1.97;
     double sdm = 7.53e-5;        // nu-fit 5.2
     double ldm = 2.494e-3 + sdm; // NO
-
+                                 /* Set the parameter vector */
     glbSetOscParams(central_values, 10, LED::CalProbability::GLB_R);
     glbSetOscParams(central_values, 4, LED::CalProbability::GLB_C1R);
     glbSetOscParams(central_values, -4, LED::CalProbability::GLB_C2R);
     glbSetOscParams(central_values, -4, LED::CalProbability::GLB_C3R);
     glbSetOscParams(central_values, 0.01 * sqrt(10), LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(central_values, LED::CalProbability::CalMuiR(10, 4, 0.01, sdm), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(central_values, LED::CalProbability::CalMuiR(10, 4, 0.01, ldm), LED::CalProbability::GLB_MU3R); // T2K
+    glbSetOscParams(central_values, LED::CalProbability::CalMuiR(10, 4, 0.01, sdm + 0.01), LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(central_values, LED::CalProbability::CalMuiR(10, 4, 0.01, ldm + 0.01), LED::CalProbability::GLB_MU3R); // T2K
     LED::CalProbability::SetModesCutoff(20);
 
     /*Obtained from T2K paper 2303.03222*/
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     double ldm_error = 0.058e-3;
 
     glb_params input_errors = glbAllocParams();
-
+    glbDefineParams(input_errors, theta12_error, theta13_error, theta23_error, deltacp_error, sdm_error, ldm_error);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_R);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C1R);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C2R);
@@ -88,11 +88,8 @@ int main(int argc, char* argv[]) {
     /* Initialize parameter and projection vector(s) */
     glb_params test_values = glbAllocParams();
     glb_params minimum = glbAllocParams();
-    glb_projection T2K_projection = glbAllocProjection();
-
-    /* Set the parameter vector */
     glbDefineParams(central_values, theta12, theta13, theta23, deltacp, sdm, ldm);
-    glbDefineParams(input_errors, theta12_error, theta13_error, theta23_error, deltacp_error, sdm_error, ldm_error);
+    glb_projection T2K_projection = glbAllocProjection();
 
     /* Set central values and Input_error*/
     glbSetDensityParams(central_values, 1.0, GLB_ALL);
@@ -147,9 +144,6 @@ int main(int argc, char* argv[]) {
     double local_theta23_min = 0.0;
     double local_deltacp_min = 0.0;
     int local_z = 0;
-    // double c1 = glbGetOscParams(central_values, LED::CalProbability::GLB_C1R) / glbGetOscParams(central_values, LED::CalProbability::GLB_R);
-    // double c2 = glbGetOscParams(central_values, LED::CalProbability::GLB_C2R) / glbGetOscParams(central_values, LED::CalProbability::GLB_R);
-    // double c3 = glbGetOscParams(central_values, LED::CalProbability::GLB_C3R) / glbGetOscParams(central_values, LED::CalProbability::GLB_R);
 
     double start_time = MPI_Wtime();
     outputFiles.InitOutput(MYFILE, "");
@@ -161,7 +155,6 @@ int main(int argc, char* argv[]) {
         int y_idx = task_idx % ysteps;
         local_x = xmin + x_idx * dx;
         local_y = ymin + y_idx * dy;
-        std::cout << local_x << " " << local_y << std::endl;
         /* Set vector of test values */
         theAbsC = local_x;
         theR = local_y;
@@ -171,12 +164,11 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, -theAbsC * theR, LED::CalProbability::GLB_C3R);
         glbSetOscParams(test_values, 0.1 * theR, LED::CalProbability::GLB_MU1R);
         double m2Lightest = LED::CalProbability::CalLightestm2(theAbsC * theR, 0.1 * theR);
-        glbSetOscParams(test_values, LED::CalProbability::CalMuiR(theR, -theAbsC * theR, m2Lightest, sdm), LED::CalProbability::GLB_MU2R);
-        glbSetOscParams(test_values, LED::CalProbability::CalMuiR(theR, -theAbsC * theR, m2Lightest, ldm), LED::CalProbability::GLB_MU3R);
-        // glbSetRates();
-        /* Compute Chi^2 for all loaded experiments and all rules */
-        // res = glbChiNP(test_values, minimum, GLB_ALL);
-        //  printf("%f %f %f\n", thetheta23, thedeltacp, res);
+        glbSetOscParams(test_values, LED::CalProbability::CalMuiR(theR, -theAbsC * theR, m2Lightest, sdm + m2Lightest), LED::CalProbability::GLB_MU2R);
+        glbSetOscParams(test_values, LED::CalProbability::CalMuiR(theR, -theAbsC * theR, m2Lightest, ldm + m2Lightest), LED::CalProbability::GLB_MU3R);
+
+        res = glbChiNP(test_values, minimum, GLB_ALL);
+        // printf("%f %f %f\n", m2Lightest, theR, res);
         local_res[t] = res;
         local_z++;
         double local_elapsed = MPI_Wtime() - start_time;
