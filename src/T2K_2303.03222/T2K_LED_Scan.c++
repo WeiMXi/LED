@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, 0.01 * sqrt(10), LED::CalProbability::GLB_MU1R);
     glbSetOscParams(central_values, LED::CalProbability::CalMuiR(10, 4, 0.01, sdm + 0.01), LED::CalProbability::GLB_MU2R);
     glbSetOscParams(central_values, LED::CalProbability::CalMuiR(10, 4, 0.01, ldm + 0.01), LED::CalProbability::GLB_MU3R); // T2K
-    LED::CalProbability::SetModesCutoff(20);
+    LED::CalProbability::SetModesCutoff(25);
 
     /*Obtained from T2K paper 2303.03222*/
     double theta12_error = 0.75 * M_PI / 180; // nu-fit 5.2
@@ -115,10 +115,10 @@ int main(int argc, char* argv[]) {
     glbSetRates();
 
     double xmin = 4;
-    double xmax = 10;
+    double xmax = 15;
     int xsteps = 101;
-    double ymin = 1e-5;
-    double ymax = 0.01;
+    double ymin = 3e-8;
+    double ymax = 3e-10;
     int ysteps = 101;
     int total_tasks = xsteps * ysteps;
     double dx = (xmax - xmin) / xsteps;
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     /* result */
     double* local_res = (double*)malloc(num_tasks * sizeof(double));
     double local_x, local_y;
-    double themu1R, theAbsC;
+    double themu1R, theAbsCR;
     double res;
     double local_chi_min = 1000000.0;
     double local_theta23_min = 0.0;
@@ -156,29 +156,29 @@ int main(int argc, char* argv[]) {
         local_x = xmin + x_idx * dx;
         local_y = ymin + y_idx * dy;
         /* Set vector of test values */
-        theAbsC = local_x;
+        theAbsCR = local_x;
         themu1R = local_y;
         glbSetOscParams(test_values, 10, LED::CalProbability::R);
-        glbSetOscParams(test_values, theAbsC, LED::CalProbability::GLB_C1R);
-        glbSetOscParams(test_values, -theAbsC, LED::CalProbability::GLB_C2R);
-        glbSetOscParams(test_values, -theAbsC, LED::CalProbability::GLB_C3R);
+        glbSetOscParams(test_values, theAbsCR, LED::CalProbability::GLB_C1R);
+        glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C2R);
+        glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C3R);
         glbSetOscParams(test_values, themu1R, LED::CalProbability::GLB_MU1R);
-        double m2Lightest = LED::CalProbability::CalLightestm2(theAbsC, themu1R);
+        double m2Lightest = LED::CalProbability::CalLightestm2(theAbsCR, themu1R);
 
-        glbSetOscParams(test_values, LED::CalProbability::CalMuiR(10, -theAbsC, m2Lightest, sdm + m2Lightest), LED::CalProbability::GLB_MU2R);
-        glbSetOscParams(test_values, LED::CalProbability::CalMuiR(10, -theAbsC, m2Lightest, ldm + m2Lightest), LED::CalProbability::GLB_MU3R);
-        // std::cout << m2Lightest << std::endl;
-        res = glbChiNP(test_values, minimum, GLB_ALL);
-        printf("%f %f %f\n", theAbsC, themu1R, res);
+        glbSetOscParams(test_values, LED::CalProbability::CalMuiR(10, -theAbsCR, m2Lightest, sdm + m2Lightest), LED::CalProbability::GLB_MU2R);
+        glbSetOscParams(test_values, LED::CalProbability::CalMuiR(10, -theAbsCR, m2Lightest, ldm + m2Lightest), LED::CalProbability::GLB_MU3R);
+        std::cout << m2Lightest << std::endl;
+        // res = glbChiNP(test_values, minimum, GLB_ALL);
+        // printf("%f %f %f\n", theAbsCR, themu1R, res);
         local_res[t] = res;
         local_z++;
         double local_elapsed = MPI_Wtime() - start_time;
 
         int local_completed = t + 1;
-        int global_completed = (long long)local_completed * size;
-        double tasks_per_sec = (double)local_completed / local_elapsed;
-        double remaining_tasks = total_tasks - global_completed;
-        double remaining_time = remaining_tasks / tasks_per_sec; // 剩余时间（秒）
+        int global_completed = local_completed * size;
+        double tasks_per_sec = (double)global_completed / local_elapsed;
+        int remaining_tasks = total_tasks - global_completed;
+        double remaining_time = remaining_tasks / tasks_per_sec / size;
 
         if (rank == 0) {
             printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
