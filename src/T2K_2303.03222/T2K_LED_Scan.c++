@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, theAbsC, LED::CalProbability::GLB_C1R);
         glbSetOscParams(test_values, -theAbsC, LED::CalProbability::GLB_C2R);
         glbSetOscParams(test_values, -theAbsC, LED::CalProbability::GLB_C3R);
-        glbSetOscParams(test_values, 0.01 * sqrt(10), LED::CalProbability::GLB_MU1R);
+        glbSetOscParams(test_values, themu1R, LED::CalProbability::GLB_MU1R);
         double m2Lightest = LED::CalProbability::CalLightestm2(theAbsC, sqrt(10));
 
         glbSetOscParams(test_values, LED::CalProbability::CalMuiR(10, -theAbsC, m2Lightest, sdm + m2Lightest), LED::CalProbability::GLB_MU2R);
