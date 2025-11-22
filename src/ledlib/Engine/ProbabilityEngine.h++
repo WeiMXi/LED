@@ -107,9 +107,9 @@ inline void SetModesCutoff(const int n) {
 inline double mum_to_eVinv(const double x) { return x * 5.06773; }
 inline double eVinv_to_mum(const double x) { return x / 5.06773; }
 
-inline double CalMuiR(const double r, const double ciR, const double m12, const double mi2) {
+inline double CalMuiR(const double r, const double ciR, const double mi2) {
     double r_eVinv = mum_to_eVinv(r);
-    return std::sqrt((mi2 - m12) * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
+    return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
 }
 
 inline double CalLightestm2(const double c1R, const double mu1R) {
