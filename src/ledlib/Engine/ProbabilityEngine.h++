@@ -112,8 +112,17 @@ inline double CalMuiR(const double r, const double ciR, const double mi2) {
     return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
 }
 
-inline double CalLightestm2(const double c1R, const double mu1R) {
-    return std::exp(-2 * std::numbers::pi * std::abs(c1R)) * (2 * std::numbers::pi * std::abs(c1R)) / mu1R;
+inline double CalLightestm2(const double r, const double c1R, const double mu1R) {
+    double r_eVinv = mum_to_eVinv(r);
+    return std::exp(-2 * std::numbers::pi * std::abs(c1R)) * (2 * std::numbers::pi * std::abs(c1R)) * mu1R * mu1R / r_eVinv / r_eVinv;
+}
+
+inline double CalMu1R(const double r, const double c1R, const double lightestm2) {
+    double abs_c1R = std::abs(c1R);
+    double r_eVinv = mum_to_eVinv(r);
+    double exp_term = std::exp(2 * std::numbers::pi * abs_c1R); // 1/e^{-...}=e^...
+    double linear_term = 2 * std::numbers::pi * abs_c1R;
+    return sqrt(exp_term * lightestm2 * r_eVinv * r_eVinv / linear_term);
 }
 
 inline void make_PMNS(gsl_matrix_complex* U, const int cp_sign) {

@@ -115,11 +115,11 @@ int main(int argc, char* argv[]) {
     glbSetRates();
 
     double xmin = 4;
-    double xmax = 15;
-    int xsteps = 101;
-    double ymin = 3e-8;
-    double ymax = 3e-10;
-    int ysteps = 101;
+    double xmax = 10;
+    int xsteps = 7;
+    double ymin = 1e3;
+    double ymax = 1e6;
+    int ysteps = 100;
     int total_tasks = xsteps * ysteps;
     double dx = (xmax - xmin) / xsteps;
     double dy = (ymax - ymin) / ysteps;
@@ -163,13 +163,13 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C2R);
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C3R);
         glbSetOscParams(test_values, themu1R, LED::CalProbability::GLB_MU1R);
-        double m2Lightest = LED::CalProbability::CalLightestm2(theAbsCR, themu1R);
+        double m2Lightest = LED::CalProbability::CalLightestm2(10, theAbsCR, themu1R);
 
         glbSetOscParams(test_values, LED::CalProbability::CalMuiR(10, -theAbsCR, sdm + m2Lightest), LED::CalProbability::GLB_MU2R);
         glbSetOscParams(test_values, LED::CalProbability::CalMuiR(10, -theAbsCR, ldm + m2Lightest), LED::CalProbability::GLB_MU3R);
-        std::cout << m2Lightest << std::endl;
-        // res = glbChiNP(test_values, minimum, GLB_ALL);
-        // printf("%f %f %f\n", theAbsCR, themu1R, res);
+        // std::cout << m2Lightest << std::endl;
+        res = glbChiNP(test_values, minimum, GLB_ALL);
+        printf("%f %f %f\n", theAbsCR, themu1R, res);
         local_res[t] = res;
         local_z++;
         double local_elapsed = MPI_Wtime() - start_time;
@@ -178,10 +178,10 @@ int main(int argc, char* argv[]) {
         int global_completed = local_completed * size;
         double tasks_per_sec = (double)global_completed / local_elapsed;
         int remaining_tasks = total_tasks - global_completed;
-        double remaining_time = remaining_tasks / tasks_per_sec / size;
+        double remaining_time = remaining_tasks / tasks_per_sec;
 
         if (rank == 0) {
-            printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
+            printf("Progress: %d/%d tasks completed. average time: %.3f /s, %.3f s left.\n",
                    global_completed, total_tasks, tasks_per_sec, remaining_time);
         }
     }
