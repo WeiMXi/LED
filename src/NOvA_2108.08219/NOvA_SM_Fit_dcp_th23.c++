@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
         thedeltacp = local_y;
         glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
         glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
-        glbSetRates();
+        // glbSetRates();
         /* Compute Chi^2 for all loaded experiments and all rules */
         res = glbChiNP(test_values, minimum, GLB_ALL);
         local_res[t] = res;
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
         thedeltacp = local_y;
         glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
         glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
-        glbSetRates();
+        // glbSetRates();
         /* Compute Chi^2 for all loaded experiments and all rules */
         res = glbChiNP(test_values, minimum, GLB_ALL);
         local_res[t] = res;

@@ -112,6 +112,35 @@ inline double CalMuiR(const double r, const double ciR, const double mi2) {
     return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
 }
 
+inline double compute_muiR(double r, double ciR, double mi_sq) {
+    double r_eVinv = mum_to_eVinv(r);
+    double abs_c = fabs(ciR);
+    double pi = std::numbers::pi;
+    double sinh_p = sinh(pi * abs_c);
+    double coth_p = cosh(pi * abs_c) / sinh_p;
+    double num_base = 2 * pi * abs_c * (abs_c * coth_p - ciR);
+    double denom_base = 2 * abs_c;
+    double denom_c = pi * coth_p;
+    double denom_d = pi * pi * abs_c / (sinh_p * sinh_p);
+    double y = r_eVinv * r_eVinv * mi_sq; // (R * m_i)^2
+    double res = y * denom_base / (num_base + denom_d * y - denom_c * y);
+    double muiR = sqrt(res);
+    return muiR;
+}
+
+double hi_zero(double cbar, double mubar) {
+    const double pi = std::numbers::pi_v<double>;
+
+    double abs_c = std::abs(cbar);
+    if (abs_c < 1e-12) {
+        return 0.0;
+    }
+
+    double coth = std::cosh(pi * abs_c) / std::sinh(pi * abs_c);
+    double term = cbar - cbar * cbar * coth; // 注意 cbar² = (|c|)^2
+    return pi * mubar * mubar * term;
+}
+
 inline double CalLightestm2(const double r, const double c1R, const double mu1R) {
     double r_eVinv = mum_to_eVinv(r);
     return std::exp(-2 * std::numbers::pi * std::abs(c1R)) * (2 * std::numbers::pi * std::abs(c1R)) * mu1R * mu1R / r_eVinv / r_eVinv;
