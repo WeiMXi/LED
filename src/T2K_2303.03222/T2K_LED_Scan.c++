@@ -27,7 +27,8 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-const std::string MYFILE = "../data/T2K/T2K_LED_scan.dat";
+const std::string MYFILEN1 = "../data/T2K/T2K_LED_Scan_NH.dat";
+const std::string MYFILEI1 = "../data/T2K/T2K_LED_Scan_IH.dat";
 LED::IO::Output outputFiles;
 
 int main(int argc, char* argv[]) {
@@ -65,7 +66,7 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, 0.01 * sqrt(10), LED::CalProbability::GLB_MU1R);
     glbSetOscParams(central_values, LED::CalProbability::CalMuiR(10, 4, sdm), LED::CalProbability::GLB_MU2R);
     glbSetOscParams(central_values, LED::CalProbability::CalMuiR(10, 4, ldm), LED::CalProbability::GLB_MU3R); // T2K
-    LED::CalProbability::SetModesCutoff(25);
+    LED::CalProbability::SetModesCutoff(20);
 
     /*Obtained from T2K paper 2303.03222*/
     double theta12_error = 0.75 * M_PI / 180; // nu-fit 5.2
@@ -114,12 +115,19 @@ int main(int argc, char* argv[]) {
     glbCopyParams(central_values, test_values);
     glbSetRates();
 
+    //////////////////////////////////////////////
+    /// 		Calculate data		      ///
+    /////////////////////////////////////////////
+
+    /* Initiate a parameter vector for the scan */
+    glbCopyParams(central_values, test_values);
+
     double xmin = 4;
     double xmax = 10;
-    int xsteps = 7;
-    double ymin = 1e3;
-    double ymax = 1e6;
-    int ysteps = 100;
+    int xsteps = 10;
+    double ymin = 0.1;
+    double ymax = 0.5;
+    int ysteps = 20;
     int total_tasks = xsteps * ysteps;
     double dx = (xmax - xmin) / xsteps;
     double dy = (ymax - ymin) / ysteps;
@@ -138,16 +146,14 @@ int main(int argc, char* argv[]) {
     /* result */
     double* local_res = (double*)malloc(num_tasks * sizeof(double));
     double local_x, local_y;
-    double themu1R, theAbsCR;
+    double theAbsCR, themu1R, theLightestm2, theR, themu3R;
     double res;
     double local_chi_min = 1000000.0;
     double local_theta23_min = 0.0;
     double local_deltacp_min = 0.0;
-    int local_z = 0;
 
     double start_time = MPI_Wtime();
-    outputFiles.InitOutput(MYFILE, "");
-
+    theR = 10;
     /* MPI */
     for (int t = 0; t < num_tasks; t++) {
         int task_idx = start_task + t;
@@ -158,20 +164,23 @@ int main(int argc, char* argv[]) {
         /* Set vector of test values */
         theAbsCR = local_x;
         themu1R = local_y;
-        glbSetOscParams(test_values, 10, LED::CalProbability::R);
+
+        // double hc1 = theAbsCR * theAbsCR + (std::numbers::pi * theAbsCR - 1) * themu1R;
+        // double h0 = LED::CalProbability::hi_zero(theAbsCR, themu1R);
+        // std::cout << hc1 << " " << h0 << std::endl;
+
+        glbSetOscParams(test_values, theR, LED::CalProbability::GLB_R);
         glbSetOscParams(test_values, theAbsCR, LED::CalProbability::GLB_C1R);
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C2R);
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C3R);
-        glbSetOscParams(test_values, themu1R, LED::CalProbability::GLB_MU1R);
-        double m2Lightest = LED::CalProbability::CalLightestm2(10, theAbsCR, themu1R);
 
-        glbSetOscParams(test_values, LED::CalProbability::CalMuiR(10, -theAbsCR, sdm + m2Lightest), LED::CalProbability::GLB_MU2R);
-        glbSetOscParams(test_values, LED::CalProbability::CalMuiR(10, -theAbsCR, ldm + m2Lightest), LED::CalProbability::GLB_MU3R);
-        // std::cout << m2Lightest << std::endl;
+        glbSetOscParams(test_values, themu1R, LED::CalProbability::GLB_MU1R);
+        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, sdm), LED::CalProbability::GLB_MU2R);
+        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, ldm), LED::CalProbability::GLB_MU3R);
+        // std::cout << sqrt(LED::CalProbability::CalLightestm2(theR, theAbsCR, themu1R)) * LED::CalProbability::mum_to_eVinv(theR) << std::endl;
         res = glbChiNP(test_values, minimum, GLB_ALL);
         printf("%f %f %f\n", theAbsCR, themu1R, res);
         local_res[t] = res;
-        local_z++;
         double local_elapsed = MPI_Wtime() - start_time;
 
         int local_completed = t + 1;
@@ -181,11 +190,10 @@ int main(int argc, char* argv[]) {
         double remaining_time = remaining_tasks / tasks_per_sec;
 
         if (rank == 0) {
-            printf("Progress: %d/%d tasks completed. average time: %.3f /s, %.3f s left.\n",
+            printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
                    global_completed, total_tasks, tasks_per_sec, remaining_time);
         }
     }
-
     MPI_Barrier(MPI_COMM_WORLD);
 
     double global_chi_min, global_theta23_min, global_deltacp_min;
@@ -214,8 +222,12 @@ int main(int argc, char* argv[]) {
         }
     }
     MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
     if (rank == 0) {
-        outputFiles.InitOutput(MYFILE, "");
+        outputFiles.InitOutput(MYFILEN1, "");
+        double chi_min = global_chi_min;
+        double theta23_min = 0.0;
+        double deltacp_min = 0.0;
         int z = 0;
         for (int idx = 0; idx < total_tasks; idx++) {
             int x_idx = idx / ysteps;
@@ -224,10 +236,110 @@ int main(int argc, char* argv[]) {
             double y_out = ymin + y_idx * dy;
             res = all_res[idx];
             outputFiles.AddToOutput(x_out, y_out, res);
+            if (res < chi_min) {
+                chi_min = res;
+                theta23_min = asin(sqrt(x_out));
+                deltacp_min = y_out;
+            }
             z++;
             if (z % 100 == 0) {
                 printf("%d\n", z);
             }
+        }
+    }
+
+    // Flip hierarchy
+    glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
+    glbSetOscParams(central_values, -1.44 * M_PI, GLB_DELTA_CP);
+    glbSetOscillationParameters(central_values);
+    glbSetRates();
+
+    glbCopyParams(central_values, test_values);
+    start_time = MPI_Wtime();
+    local_chi_min = 1000000.0;
+    local_theta23_min = 0.0;
+    local_deltacp_min = 0.0;
+
+    /* MPI */
+    for (int t = 0; t < num_tasks; t++) {
+        int task_idx = start_task + t;
+        int x_idx = task_idx / ysteps;
+        int y_idx = task_idx % ysteps;
+        local_x = xmin + x_idx * dx;
+        local_y = ymin + y_idx * dy;
+        /* Set vector of test values */
+        theAbsCR = local_x;
+        themu3R = local_y;
+
+        glbSetOscParams(test_values, theR, LED::CalProbability::GLB_R);
+        glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C1R);
+        glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C2R);
+        glbSetOscParams(test_values, theAbsCR, LED::CalProbability::GLB_C3R);
+
+        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, 2.463e-3), LED::CalProbability::GLB_MU1R);
+        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, 2.463e-3 + sdm), LED::CalProbability::GLB_MU2R);
+        glbSetOscParams(test_values, themu3R, LED::CalProbability::GLB_MU3R);
+        // std::cout << sqrt(LED::CalProbability::CalLightestm2(10, theAbsCR, themu1R)) * LED::CalProbability::mum_to_eVinv(10) << std::endl;
+        res = glbChiNP(test_values, minimum, GLB_ALL);
+
+        printf("%f %f %f\n", theAbsCR, themu1R, res);
+        local_res[t] = res;
+        double local_elapsed = MPI_Wtime() - start_time;
+
+        int local_completed = t + 1;
+        int global_completed = local_completed * size;
+        double tasks_per_sec = (double)local_completed / local_elapsed;
+        int remaining_tasks = total_tasks - global_completed;
+        double remaining_time = remaining_tasks / tasks_per_sec / size;
+
+        if (rank == 0) {
+            printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
+                   global_completed, total_tasks, tasks_per_sec, remaining_time);
+        }
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    MPI_Allreduce(&local_chi_min, &global_chi_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+
+    all_res = NULL;
+    if (rank == 0) {
+        all_res = (double*)malloc(total_tasks * sizeof(double));
+    }
+    // 先gather num_tasks到rank0
+    all_num_tasks = NULL;
+    if (rank == 0) {
+        all_num_tasks = (int*)malloc(size * sizeof(int));
+    }
+    MPI_Gather(&num_tasks, 1, MPI_INT, all_num_tasks, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // 然后displs和recvcounts for irregular gather
+    displs = NULL,
+    recvcounts = NULL;
+    if (rank == 0) {
+        displs = (int*)malloc(size * sizeof(int));
+        recvcounts = (int*)malloc(size * sizeof(int));
+        displs[0] = 0;
+        recvcounts[0] = all_num_tasks[0];
+        for (int i = 1; i < size; i++) {
+            displs[i] = displs[i - 1] + all_num_tasks[i - 1];
+            recvcounts[i] = all_num_tasks[i];
+        }
+    }
+    MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        outputFiles.InitOutput(MYFILEI1, "");
+        double chi_min = global_chi_min;
+        double theta23_min = 0.0;
+        double deltacp_min = 0.0;
+        int z = 0;
+        for (int idx = 0; idx < total_tasks; idx++) {
+            int x_idx = idx / ysteps;
+            int y_idx = idx % ysteps;
+            double x_out = xmin + x_idx * dx;
+            double y_out = ymin + y_idx * dy;
+            res = all_res[idx];
+            outputFiles.AddToOutput(x_out, y_out, res);
         }
     }
 
@@ -240,7 +352,13 @@ int main(int argc, char* argv[]) {
         free(recvcounts);
     }
 
-    // End MPI
     MPI_Finalize();
+    // Destroy parameter vector(s)
+    glbFreeParams(central_values);
+    glbFreeParams(test_values);
+    glbFreeParams(input_errors);
+    glbFreeParams(minimum);
+    glbFreeProjection(T2K_projection);
+
     exit(0);
 }

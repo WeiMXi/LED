@@ -24,7 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-char MYFILE[] = "../data/T2K/T2K_SM_fit.dat";
+char MYFILEN1[] = "../data/T2K/T2K_SM_fit_NH.dat";
+char MYFILEI1[] = "../data/T2K/T2K_SM_fit_IH.dat";
 
 double SQR(double x) {
     return x * x;
@@ -86,60 +87,16 @@ int main(int argc, char* argv[]) {
 
     glbCopyParams(central_values, test_values);
 
-    // /* Iterate over all deltacp values and find the global minimum */
-    // double thetheta23, theta23_min, res;
-    // double thedeltacp, deltacp_min;
-    // double x, y;
-    // double chi_min = 1000000.0;
-    // int z = 0;
-    // double xmin = 0.35;
-    // double xmax = 0.65;
-    // int xsteps = 100;
-    // double ymin = 0;
-    // double ymax = 2 * M_PI;
-    // int ysteps = 100;
-    // InitOutput(MYFILE, "");
-
-    // for (x = xmin; x <= xmax; x = x + (xmax - xmin) / xsteps) {
-    //     for (y = ymin; y <= ymax; y = y + (ymax - ymin) / ysteps) {
-    //         /* Set vector of test values */
-    //         thetheta23 = asin(sqrt(x)); // Sin2 theta23 to radian
-    //         thedeltacp = y;
-    //         glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
-    //         glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
-    //         /* Compute Chi^2 for all loaded experiments and all rules */
-
-    // res = glbChiNP(test_values, minimum, GLB_ALL);
-    // AddToOutput(x, y, res);
-    // if (res < chi_min) {
-    //     theta23_min = thetheta23;
-    //     chi_min = res;
-    //     deltacp_min = thedeltacp;
-    // }
-    // z++;
-    // if (z % 100 == 0) {
-    //     printf("%d\n", z);
-    // }
-    // }
-    // }
-    // printf("\n\nBest-fit value: Sin^2 theta23 = %f degrees, DeltaCP = %f and chi^2_min = %f \n\n", SQR(sin(theta23_min)), deltacp_min, chi_min);
-
-    // glbFreeParams(central_values);
-
-    // /* Clear experiment list */
-    // glbClearExperimentList();
-
-    /* **新增：并行网格搜索参数** */
     double xmin = 0.35;
     double xmax = 0.65;
-    int xsteps = 100;
+    int xsteps = 101;
     double ymin = 0;
     double ymax = 2 * M_PI;
-    int ysteps = 100;
-    int total_tasks = xsteps * ysteps; // 总网格点数
+    int ysteps = 101;
+    int total_tasks = xsteps * ysteps;
     double dx = (xmax - xmin) / xsteps;
     double dy = (ymax - ymin) / ysteps;
-    /* **新增：任务分发（类似于打印循环）** */
+
     int quotient = total_tasks / size;
     int remainder = total_tasks % size;
     int start_task, num_tasks;
@@ -150,8 +107,8 @@ int main(int argc, char* argv[]) {
         start_task = remainder * (quotient + 1) + (rank - remainder) * quotient;
         num_tasks = quotient;
     }
-    if (num_tasks == 0) num_tasks = 1; // 避免空任务
-    /* **新增：本地结果数组** */
+    if (num_tasks == 0) num_tasks = 1;
+
     double* local_res = (double*)malloc(num_tasks * sizeof(double));
     double local_x, local_y;
     double thetheta23, thedeltacp;
@@ -160,10 +117,94 @@ int main(int argc, char* argv[]) {
     double local_theta23_min = 0.0;
     double local_deltacp_min = 0.0;
     int local_z = 0;
-    /* 在循环前添加时间起始记录（所有进程） */
+
     double start_time = MPI_Wtime();
 
-    /* **并行计算循环** */
+    for (int t = 0; t < num_tasks; t++) {
+        int task_idx = start_task + t;
+        int x_idx = task_idx / ysteps;
+        int y_idx = task_idx % ysteps;
+        local_x = xmin + x_idx * dx;
+        local_y = ymin + y_idx * dy;
+
+        /* Set vector of test values */
+        thetheta23 = asin(sqrt(local_x)); // Sin2 theta23 to radian
+        thedeltacp = local_y;
+        glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
+        glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
+        /* Compute Chi^2 for all loaded experiments and all rules */
+        res = glbChiNP(test_values, minimum, GLB_ALL);
+        local_res[t] = res;
+
+        double local_elapsed = MPI_Wtime() - start_time;
+
+        int local_completed = t + 1;
+        int global_completed = local_completed * size;
+        double tasks_per_sec = (double)local_completed / local_elapsed;
+        int remaining_tasks = total_tasks - global_completed;
+        double remaining_time = remaining_tasks / tasks_per_sec / size;
+
+        if (rank == 0) {
+            printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
+                   global_completed, total_tasks, tasks_per_sec, remaining_time);
+        }
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    double global_chi_min, global_theta23_min, global_deltacp_min;
+    MPI_Allreduce(&local_chi_min, &global_chi_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+
+    double* all_res = NULL;
+    if (rank == 0) {
+        all_res = (double*)malloc(total_tasks * sizeof(double));
+    }
+
+    int* all_num_tasks = NULL;
+    if (rank == 0) {
+        all_num_tasks = (int*)malloc(size * sizeof(int));
+    }
+    MPI_Gather(&num_tasks, 1, MPI_INT, all_num_tasks, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    int *displs = NULL, *recvcounts = NULL;
+    if (rank == 0) {
+        displs = (int*)malloc(size * sizeof(int));
+        recvcounts = (int*)malloc(size * sizeof(int));
+        displs[0] = 0;
+        recvcounts[0] = all_num_tasks[0];
+        for (int i = 1; i < size; i++) {
+            displs[i] = displs[i - 1] + all_num_tasks[i - 1];
+            recvcounts[i] = all_num_tasks[i];
+        }
+    }
+    MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        InitOutput(MYFILEN1, "");
+        double chi_min = global_chi_min;
+        for (int idx = 0; idx < total_tasks; idx++) {
+            int x_idx = idx / ysteps;
+            int y_idx = idx % ysteps;
+            double x_out = xmin + x_idx * dx;
+            double y_out = ymin + y_idx * dy;
+            res = all_res[idx];
+            AddToOutput(x_out, y_out, res);
+        }
+    }
+
+    // Flip hierarchy
+    glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
+    glbSetOscParams(central_values, -1.44 * M_PI, GLB_DELTA_CP);
+    glbSetOscParams(central_values, -2.463e-3, GLB_DM_31); // DM31 = DM32 + DM21
+    glbSetOscillationParameters(central_values);
+    glbSetRates();
+
+    glbCopyParams(central_values, test_values);
+    start_time = MPI_Wtime();
+    local_chi_min = 1000000.0;
+    local_theta23_min = 0.0;
+    local_deltacp_min = 0.0;
+
+    /* MPI */
     for (int t = 0; t < num_tasks; t++) {
         int task_idx = start_task + t;
         int x_idx = task_idx / ysteps;
@@ -188,53 +229,39 @@ int main(int argc, char* argv[]) {
             local_deltacp_min = thedeltacp;
         }
 
-        local_z++;
-        if (local_z % 100 == 0) {
-            /* 计算本地已用时间 */
-            double local_elapsed = MPI_Wtime() - start_time;
+        double local_elapsed = MPI_Wtime() - start_time;
 
-            /* 全局汇总已完成任务数（所有进程的 local_z 求和） */
-            int global_completed;
-            MPI_Allreduce(&local_z, &global_completed, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        int local_completed = t + 1;
+        int global_completed = local_completed * size;
+        double tasks_per_sec = (double)local_completed / local_elapsed;
+        int remaining_tasks = total_tasks - global_completed;
+        double remaining_time = remaining_tasks / tasks_per_sec / size;
 
-            /* 全局汇总平均已用时间（所有进程的 local_elapsed 求平均） */
-            double sum_elapsed;
-            MPI_Allreduce(&local_elapsed, &sum_elapsed, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-            double avg_elapsed = sum_elapsed / size;
-
-            /* 计算每个任务的平均时间，并估算剩余时间 */
-            double avg_per_task = (global_completed > 0) ? (avg_elapsed / global_completed) : 0.0;
-            double remaining_time = (total_tasks - global_completed) * avg_per_task;
-
-            /* 只在 rank 0 打印进度 */
-            if (rank == 0) {
-                printf("Progress: %d/%d tasks completed. Elapsed: %.2f s, ETA: %.2f s\n",
-                       global_completed, total_tasks, avg_elapsed, remaining_time);
-            }
+        if (rank == 0) {
+            printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
+                   global_completed, total_tasks, tasks_per_sec, remaining_time);
         }
     }
 
-    /* **新增：MPI_Barrier 同步所有进程** */
     MPI_Barrier(MPI_COMM_WORLD);
 
-    double global_chi_min, global_theta23_min, global_deltacp_min;
+    // double global_chi_min, global_theta23_min, global_deltacp_min;
     MPI_Allreduce(&local_chi_min, &global_chi_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-    // 注意：theta23/deltacp_min需对应min位置，实际实现中可广播或额外gather；这里简化假设rank0有
 
-    /* **新增：收集所有res到rank0** */
-    double* all_res = NULL;
+    all_res = NULL;
     if (rank == 0) {
         all_res = (double*)malloc(total_tasks * sizeof(double));
     }
     // 先gather num_tasks到rank0
-    int* all_num_tasks = NULL;
+    all_num_tasks = NULL;
     if (rank == 0) {
         all_num_tasks = (int*)malloc(size * sizeof(int));
     }
     MPI_Gather(&num_tasks, 1, MPI_INT, all_num_tasks, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // 然后displs和recvcounts for irregular gather
-    int *displs = NULL, *recvcounts = NULL;
+    displs = NULL;
+    recvcounts = NULL;
     if (rank == 0) {
         displs = (int*)malloc(size * sizeof(int));
         recvcounts = (int*)malloc(size * sizeof(int));
@@ -247,11 +274,12 @@ int main(int argc, char* argv[]) {
     }
     MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    /* **新增：rank0处理输出和全局min** */
     if (rank == 0) {
-        // 重组并输出
-        InitOutput(MYFILE, "");
+        InitOutput(MYFILEI1, "");
         double chi_min = global_chi_min;
+        double theta23_min = 0.0;
+        double deltacp_min = 0.0;
+        int z = 0;
         for (int idx = 0; idx < total_tasks; idx++) {
             int x_idx = idx / ysteps;
             int y_idx = idx % ysteps;
@@ -259,6 +287,15 @@ int main(int argc, char* argv[]) {
             double y_out = ymin + y_idx * dy;
             res = all_res[idx];
             AddToOutput(x_out, y_out, res);
+            if (res < chi_min) {
+                chi_min = res;
+                theta23_min = asin(sqrt(x_out));
+                deltacp_min = y_out;
+            }
+            z++;
+            if (z % 100 == 0) {
+                printf("%d\n", z);
+            }
         }
     }
 
