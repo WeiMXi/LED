@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
 
     // Flip hierarchy
     glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
-    glbSetOscParams(central_values, -1.44 * M_PI, GLB_DELTA_CP);
+    glbSetOscParams(central_values, -1.44, GLB_DELTA_CP);
     glbSetOscillationParameters(central_values);
     glbSetRates();
 
@@ -282,7 +282,7 @@ int main(int argc, char* argv[]) {
         // std::cout << sqrt(LED::CalProbability::CalLightestm2(10, theAbsCR, themu1R)) * LED::CalProbability::mum_to_eVinv(10) << std::endl;
         res = glbChiNP(test_values, minimum, GLB_ALL);
 
-        printf("%f %f %f\n", theAbsCR, themu1R, res);
+        printf("%f %f %f\n", theAbsCR, themu3R, res);
         local_res[t] = res;
         double local_elapsed = MPI_Wtime() - start_time;
 
