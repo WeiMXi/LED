@@ -5,7 +5,7 @@ Dependencies:
 * GSL (≥ 2.6)
 * CMake (≥ 3.12)
 * OpenBlas (disable if not found)
-* CUDAToolkit (disable if not found, import performance)
+* CUDAToolkit (disable in default, import performance)
 
 Required, built-in if not found (network or pre-downloaded source is required):
 * [GLoBES, General Long Baseline Experiment Simulator](https://www.mpi-hd.mpg.de/personalhomes/globes/index.html), built-in version: [globes-cmake](https://github.com/WeiMXi/globes-cmake)  
