@@ -112,7 +112,7 @@ inline double CalMuiR(const double r, const double ciR, const double mi2) {
     if (std::abs(ciR) > DELTA) {
         return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
     } else {
-        return sqrt(mi2);
+        return sqrt(mi2 * (r_eVinv) * (r_eVinv));
     }
 }
 
