@@ -109,7 +109,11 @@ inline double eVinv_to_mum(const double x) { return x / 5.06773; }
 
 inline double CalMuiR(const double r, const double ciR, const double mi2) {
     double r_eVinv = mum_to_eVinv(r);
-    return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
+    if (std::abs(ciR) > DELTA) {
+        return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
+    } else {
+        return sqrt(mi2);
+    }
 }
 
 inline double compute_muiR(double r, double ciR, double mi_sq) {
