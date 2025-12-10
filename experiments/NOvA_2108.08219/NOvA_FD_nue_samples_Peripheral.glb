@@ -114,7 +114,7 @@ $lengthtab =		{812}	/* km */
 /* ####### Technical information ####### */
 
 $filter_state = 0
-$filter_value = 0.1 
+$filter_value = 0.03 
 
 
 

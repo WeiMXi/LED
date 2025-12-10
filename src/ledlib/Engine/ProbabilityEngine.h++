@@ -8,7 +8,6 @@
 #include <array>
 #include <cmath>
 #include <cstdlib>
-#include <format>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_cblas.h>
 #include <gsl/gsl_complex.h>
@@ -202,8 +201,6 @@ inline int my_get_oscillation_parameters(glb_params p, void* user_data) {
     glbSetOscParams(p, mu1R, GLB_MU1R);
     glbSetOscParams(p, mu2R, GLB_MU2R);
     glbSetOscParams(p, mu3R, GLB_MU3R);
-
-    std::cout << std::format("m0: {:.6f} eV, mu1R: {:.6f}, mu2R: {:.6f}, mu3R: {:.6f}\n", m0, mu1R, mu2R, mu3R);
 
     return 0;
 }
