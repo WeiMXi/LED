@@ -122,10 +122,10 @@ int main(int argc, char* argv[]) {
 
     /* Define standard oscillation parameters */
     double theta12 = asin(sqrt(0.307));
-    double theta13 = asin(sqrt(0.0210));
+    double theta13 = asin(sqrt(0.02195));
     double theta23 = asin(sqrt(0.57));
     double deltacp = 0.82 * M_PI;
-    double sdm = 7.53e-5;
+    double sdm = 7.49e-5;
     double ldm = 2.41e-3 + sdm;
     glb_params central_values = glbAllocParams();
     glb_params input_errors = glbAllocParams();
