@@ -52,13 +52,13 @@ int main(int argc, char* argv[]) {
     glb_params central_values = glbAllocParams();
 
     /* Define standard oscillation parameters for NO in T2K with Reactor Constraint */
-    double theta12 = asin(sqrt(0.307)); // nu-fit 5.2
-    double theta13 = asin(sqrt(0.0218));
+    double theta12 = asin(sqrt(0.307)); // nu-fit 6.0
+    double theta13 = asin(sqrt(0.02195));
     double theta23 = asin(sqrt(0.561));
     double deltacp = -1.97;
-    double sdm = 7.53e-5;        // nu-fit 5.2
+    double sdm = 7.49e-5;        // nu-fit 5.2
     double ldm = 2.494e-3 + sdm; // NO
-                                 /* Set the parameter vector */
+    /* Set the parameter vector */
     glbSetOscParams(central_values, 10, LED::CalProbability::GLB_R);
     glbSetOscParams(central_values, 4, LED::CalProbability::GLB_C1R);
     glbSetOscParams(central_values, -4, LED::CalProbability::GLB_C2R);
@@ -69,11 +69,11 @@ int main(int argc, char* argv[]) {
     LED::CalProbability::SetModesCutoff(20);
 
     /*Obtained from T2K paper 2303.03222*/
-    double theta12_error = 0.75 * M_PI / 180; // nu-fit 5.2
-    double theta13_error = 1.91e-3;           // nu-fit 5.2
+    double theta12_error = 0.75 * M_PI / 180;
+    double theta13_error = 1.91e-3;
     double theta23_error = 1.1 * M_PI / 180;
     double deltacp_error = 1.25;
-    double sdm_error = 0.21e-5; // nu-fit 5.2
+    double sdm_error = 0.19e-5;
     double ldm_error = 0.058e-3;
 
     glb_params input_errors = glbAllocParams();
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     glbSetInputErrors(input_errors);
 
     /*Set up the Projection  */
-    glbDefineProjection(T2K_projection, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
+    glbDefineProjection(T2K_projection, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_R);
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C1R);
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C2R);
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
 
     double xmin = 4;
     double xmax = 10;
-    int xsteps = 10;
+    int xsteps = 40;
     double ymin = 0.1;
     double ymax = 0.5;
     int ysteps = 20;
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
     if (rank == 0) {
         all_res = (double*)malloc(total_tasks * sizeof(double));
     }
-    // 先gather num_tasks到rank0
+
     int* all_num_tasks = NULL;
     if (rank == 0) {
         all_num_tasks = (int*)malloc(size * sizeof(int));
@@ -288,9 +288,9 @@ int main(int argc, char* argv[]) {
 
         int local_completed = t + 1;
         int global_completed = local_completed * size;
-        double tasks_per_sec = (double)local_completed / local_elapsed;
+        double tasks_per_sec = (double)global_completed / local_elapsed;
         int remaining_tasks = total_tasks - global_completed;
-        double remaining_time = remaining_tasks / tasks_per_sec / size;
+        double remaining_time = remaining_tasks / tasks_per_sec;
 
         if (rank == 0) {
             printf("Progress: %d/%d tasks completed. average time: %.2f /s, %.2f s left.\n",
