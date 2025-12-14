@@ -59,13 +59,13 @@ int main(int argc, char* argv[]) {
     double sdm = 7.49e-5;        // nu-fit 5.2
     double ldm = 2.494e-3 + sdm; // NO
     /* Set the parameter vector */
-    glbSetOscParams(central_values, 10, LED::CalProbability::GLB_R);
+    glbSetOscParams(central_values, 1, LED::CalProbability::GLB_R);
     glbSetOscParams(central_values, 4, LED::CalProbability::GLB_C1R);
     glbSetOscParams(central_values, -4, LED::CalProbability::GLB_C2R);
     glbSetOscParams(central_values, -4, LED::CalProbability::GLB_C3R);
-    glbSetOscParams(central_values, 0.01 * sqrt(10), LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(central_values, LED::CalProbability::CalMuiR(10, 4, sdm), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(central_values, LED::CalProbability::CalMuiR(10, 4, ldm), LED::CalProbability::GLB_MU3R); // T2K
+    glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(10, 4, sdm), LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(10, 4, ldm), LED::CalProbability::GLB_MU3R); // T2K
     LED::CalProbability::SetModesCutoff(20);
 
     /*Obtained from T2K paper 2303.03222*/
@@ -175,8 +175,8 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C3R);
 
         glbSetOscParams(test_values, themu1R, LED::CalProbability::GLB_MU1R);
-        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, sdm), LED::CalProbability::GLB_MU2R);
-        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, ldm), LED::CalProbability::GLB_MU3R);
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, sdm), LED::CalProbability::GLB_MU2R);
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, ldm), LED::CalProbability::GLB_MU3R);
         // std::cout << sqrt(LED::CalProbability::CalLightestm2(theR, theAbsCR, themu1R)) * LED::CalProbability::mum_to_eVinv(theR) << std::endl;
         res = glbChiNP(test_values, minimum, GLB_ALL);
         printf("%f %f %f\n", theAbsCR, themu1R, res);
@@ -251,6 +251,14 @@ int main(int argc, char* argv[]) {
     // Flip hierarchy
     glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
     glbSetOscParams(central_values, -1.44, GLB_DELTA_CP);
+    glbSetOscParams(central_values, 1, LED::CalProbability::GLB_R);
+    glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C1R);
+    glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C2R);
+    glbSetOscParams(central_values, 10, LED::CalProbability::GLB_C3R);
+
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.463e-3), LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.463e-3 + sdm), LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU3R);
     glbSetOscillationParameters(central_values);
     glbSetRates();
 
@@ -276,8 +284,8 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C2R);
         glbSetOscParams(test_values, theAbsCR, LED::CalProbability::GLB_C3R);
 
-        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, 2.463e-3), LED::CalProbability::GLB_MU1R);
-        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, 2.463e-3 + sdm), LED::CalProbability::GLB_MU2R);
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, 2.463e-3), LED::CalProbability::GLB_MU1R);
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, 2.463e-3 + sdm), LED::CalProbability::GLB_MU2R);
         glbSetOscParams(test_values, themu3R, LED::CalProbability::GLB_MU3R);
         // std::cout << sqrt(LED::CalProbability::CalLightestm2(10, theAbsCR, themu1R)) * LED::CalProbability::mum_to_eVinv(10) << std::endl;
         res = glbChiNP(test_values, minimum, GLB_ALL);

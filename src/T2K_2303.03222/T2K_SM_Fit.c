@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Flip hierarchy
-    glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
+    glbSetOscParams(central_values, asin(sqrt(0.563)), GLB_THETA_23);
     glbSetOscParams(central_values, -1.44 * M_PI, GLB_DELTA_CP);
     glbSetOscParams(central_values, -2.463e-3, GLB_DM_31); // DM31 = DM32 + DM21
     glbSetOscillationParameters(central_values);

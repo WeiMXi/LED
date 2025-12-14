@@ -25,7 +25,7 @@ nuflux(#T2Kplus)
 
 $profiletype = 3
 $densitytab = {2.8}
-$lengthtab = {295}
+$lengthtab = {810}
 
 
 $target_mass = 22.5 /* kt */
@@ -34,17 +34,17 @@ $target_mass = 22.5 /* kt */
 
 $emin =  0.2
 $emax =  2.0
-$bins = 2
+$bins = 200
 
  
-$sampling_points = 2 
+$sampling_points = 200 
 $sampling_min = 0.1
 $sampling_max = 3.0
 
 
 
-$filter_state = 0
-$filter_value = 0.05
+$filter_state = 1
+$filter_value = 0.1
 
 
 cross(#QE) < @cross_file = "../experiments/prob test/xsec/waterGENIE3_CCQE.dat" >
