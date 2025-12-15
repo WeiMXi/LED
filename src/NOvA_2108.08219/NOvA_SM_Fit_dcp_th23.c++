@@ -41,8 +41,8 @@ double my_prior(const glb_params in, void* user_data) {
     if (glbGetProjectionFlag(p, GLB_THETA_13) == GLB_FREE) {
         fitvalue = glbGetOscParams(in, GLB_THETA_13);
         fitvalue = square(sin(2 * fitvalue));
-        centralvalue = square(sin(2 * th13Prior)); // 0.0857;
-        inputerror = 0.0046;
+        centralvalue = square(sin(2 * th13Prior));
+        inputerror = 0.0019;
         pv += square((centralvalue - fitvalue) / inputerror);
     }
     if (glbGetProjectionFlag(p, GLB_DELTA_CP) == GLB_FREE) {
@@ -119,10 +119,10 @@ int main(int argc, char* argv[]) {
 
     /* Define standard oscillation parameters */
     double theta12 = asin(sqrt(0.307));
-    double theta13 = asin(sqrt(0.0210));
+    double theta13 = asin(sqrt(0.02195));
     double theta23 = asin(sqrt(0.57));
     double deltacp = 0.82 * M_PI;
-    double sdm = 7.53e-5;
+    double sdm = 7.49e-5;
     double ldm = 2.41e-3 + sdm;
 
     /* Initialize parameter vectors */

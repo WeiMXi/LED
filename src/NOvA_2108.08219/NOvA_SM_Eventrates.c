@@ -44,12 +44,12 @@ int main(int argc, char* argv[]) {
     InitializeNOvA(&glb_experiment_list[0], &glb_num_of_exps);
 
     /* Define standard oscillation parameters for NO in NOvA */
-    double theta12 = asin(sqrt(0.307)); // NOvA
-    double theta13 = asin(sqrt(0.021)); // NOvA
-    double theta23 = asin(sqrt(0.57));  // NOvA
-    double deltacp = 0.82 * M_PI;       // NOvA
-    double sdm = 7.53e-5;               // NOvA
-    double ldm = 2.41e-3 + sdm;         // NOvA
+    double theta12 = asin(sqrt(0.307));   // NOvA
+    double theta13 = asin(sqrt(0.02195)); // NOvA
+    double theta23 = asin(sqrt(0.57));    // NOvA
+    double deltacp = 0.82 * M_PI;         // NOvA
+    double sdm = 7.49e-5;                 // NOvA
+    double ldm = 2.41e-3 + sdm;           // NOvA
 
     /* Initialize the parameter vector */
     glb_params true_values = glbAllocParams();
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 
     InitOutput(MYFILE, "");
     for (int i = 1; i <= 1000; i++) {
-        double prob = glbConstantDensityProbability(2, 2, 1, i * 0.004, 810, 2.8);
+        double prob = glbFilteredConstantDensityProbability(0, 2, 1, 1, i * 0.004);
         AddToOutput2(i * 0.004, prob);
     }
 

@@ -8,7 +8,6 @@
 #include <array>
 #include <cmath>
 #include <cstdlib>
-#include <format>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_cblas.h>
 #include <gsl/gsl_complex.h>
@@ -74,29 +73,144 @@ static int modes;                                 // modes cutoff in 5d bulk
 double mum_to_eVinv(const double x) { return x * 5.06773; }
 double eVinv_to_mum(const double x) { return x / 5.06773; }
 
-inline double CalMuiR(const double r, const double ciR, const double mi2) {
+// inline double CalMuiR(const double r, const double ciR, const double mi2) {
+//     double r_eVinv = mum_to_eVinv(r);
+//     if (std::abs(ciR) > TOLERANCE) {
+//         return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
+//     } else {
+//         return sqrt(mi2 * (r_eVinv) * (r_eVinv));
+//     }
+// }
+
+inline double CalculateMuiR(const double r, const double ciR, const double mi2) {
+    double y{}, muiR2{};
     double r_eVinv = mum_to_eVinv(r);
-    if (std::abs(ciR) > TOLERANCE) {
-        return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
+    if (ciR * ciR - r_eVinv * r_eVinv * mi2 >= 0) {
+        y = std::sqrt(ciR * ciR - r_eVinv * r_eVinv * mi2);
+        muiR2 = (-y * y + ciR * ciR) / (std::numbers::pi * y / std::tanh(std::numbers::pi * y) - std::numbers::pi * ciR);
     } else {
-        return sqrt(mi2 * (r_eVinv) * (r_eVinv));
+        y = std::sqrt(r_eVinv * r_eVinv * mi2 - ciR * ciR);
+        muiR2 = (y * y + ciR * ciR) / (std::numbers::pi * y / std::tan(std::numbers::pi * y) - std::numbers::pi * ciR);
     }
+    return std::sqrt(muiR2);
 }
 
-inline double compute_muiR(double r, double ciR, double mi_sq) {
-    double r_eVinv = mum_to_eVinv(r);
-    double abs_c = fabs(ciR);
-    double pi = std::numbers::pi;
-    double sinh_p = sinh(pi * abs_c);
-    double coth_p = cosh(pi * abs_c) / sinh_p;
-    double num_base = 2 * pi * abs_c * (abs_c * coth_p - ciR);
-    double denom_base = 2 * abs_c;
-    double denom_c = pi * coth_p;
-    double denom_d = pi * pi * abs_c / (sinh_p * sinh_p);
-    double y = r_eVinv * r_eVinv * mi_sq; // (R * m_i)^2
-    double res = y * denom_base / (num_base + denom_d * y - denom_c * y);
-    double muiR = sqrt(res);
-    return muiR;
+// inline double compute_muiR(double r, double ciR, double mi_sq) {
+//     double r_eVinv = mum_to_eVinv(r);
+//     double abs_c = fabs(ciR);
+//     double pi = std::numbers::pi;
+//     double sinh_p = sinh(pi * abs_c);
+//     double coth_p = cosh(pi * abs_c) / sinh_p;
+//     double num_base = 2 * pi * abs_c * (abs_c * coth_p - ciR);
+//     double denom_base = 2 * abs_c;
+//     double denom_c = pi * coth_p;
+//     double denom_d = pi * pi * abs_c / (sinh_p * sinh_p);
+//     double y = r_eVinv * r_eVinv * mi_sq; // (R * m_i)^2
+//     double res = y * denom_base / (num_base + denom_d * y - denom_c * y);
+//     double muiR = sqrt(res);
+//     return muiR;
+// }
+// KK masses equation
+inline double coth_eq(double y, void* params) {
+    double c1R = ((double*)params)[0];
+    double mu1R = ((double*)params)[1];
+    return sq(c1R) + M_PI * c1R * sq(mu1R) - sq(y) - y * M_PI * sq(mu1R) / tanh(M_PI * y);
+}
+
+inline double cot_eq(double y, void* params) {
+    double c1R = ((double*)params)[0];
+    double mu1R = ((double*)params)[1];
+    return sq(c1R) + M_PI * c1R * sq(mu1R) + sq(y) - y * M_PI * sq(mu1R) / tan(M_PI * y);
+}
+
+double solver(gsl_function eq, double xl, double xr, gsl_root_fsolver* s) {
+    int status;
+    int iter = 0;
+    int max_iter = 100;
+    double root = -1.0;
+    // double epsilon = 1.0e-10;
+
+    double (*eqn)(double, void*);
+    eqn = eq.function;
+    double eq_xl = eqn(xl, eq.params);
+    double eq_xr = eqn(xr, eq.params);
+
+    if (fabs(eq_xl) <= TOLERANCE)
+        root = xl;
+    else if (fabs(eq_xr) <= TOLERANCE)
+        root = xr;
+    else {
+        while (eqn(xl, eq.params) * eqn(xr, eq.params) > 0) {
+            printf("The bracket is being shrunk.\n");
+            xl = xl + 0.1 * TOLERANCE;
+            xr = xr - 0.1 * TOLERANCE;
+        }
+
+        gsl_root_fsolver_set(s, &eq, xl, xr);
+
+        do {
+            iter = iter + 1;
+            status = gsl_root_fsolver_iterate(s);
+            root = gsl_root_fsolver_root(s);
+            xl = gsl_root_fsolver_x_lower(s);
+            xr = gsl_root_fsolver_x_upper(s);
+            status = gsl_root_test_interval(xl, xr, 0, TOLERANCE);
+
+            // if (status == GSL_SUCCESS)
+            // printf("converged!\n");
+            // printf("%5d [%2.10f, %2.10f], %2.10f, %2.10f\n", iter, xl, xr, root, xr-xl);
+        } while (status == GSL_CONTINUE && iter < max_iter);
+    }
+
+    return root;
+}
+
+int mmRR_each(double* mmRR, void* params, int modes) {
+    double root = -1.0;
+
+    const gsl_root_fsolver_type* T = gsl_root_fsolver_brent; // Brent's method adopted
+    gsl_root_fsolver* s = gsl_root_fsolver_alloc(T);
+    gsl_function eq;
+
+    eq.params = params;
+    double c1R = ((double*)params)[0];
+    double mu1R = ((double*)params)[1];
+
+    double xl = 0.0;
+    double xr = 0.0;
+
+    if (sq(c1R) + M_PI * c1R * sq(mu1R) - sq(mu1R) >= 0) {
+        printf("zero mode: coth\n");
+        eq.function = coth_eq;
+        xl = 1.0e-10;
+        xr = fabs(c1R);
+        root = solver(eq, xl, xr, s);
+        // printf("root = %f\n", root);
+        mmRR[0] = sq(c1R) - sq(root);
+    } else {
+        printf("zero mode: cot\n");
+        eq.function = cot_eq;
+        xl = TOLERANCE;
+        xr = 1.0 - TOLERANCE;
+        root = solver(eq, xl, xr, s);
+        // printf("root = %f\n", root);
+        mmRR[0] = sq(c1R) + sq(root);
+    }
+
+    if (modes > 1) {
+        for (int n = 1; n < modes; n++) {
+            eq.function = cot_eq;
+            xl = n + TOLERANCE;
+            xr = n + 1.0 - TOLERANCE;
+            root = solver(eq, xl, xr, s);
+            // printf("root = %f\n", root);
+            mmRR[n] = sq(c1R) + sq(root);
+        }
+    }
+
+    gsl_root_fsolver_free(s);
+
+    return 0;
 }
 
 /**
@@ -176,8 +290,8 @@ inline int SetRMParameters(glb_params p, void* user_data) {
         mu3R = mu3RTemp;
     } else { // need modify to c != 0 case
         mu1R = CalMuid(m0, R) * mum_to_eVinv(R);
-        mu2R = CalMuiR(R, c2R, sdm);
-        mu3R = CalMuiR(R, c3R, ldm);
+        mu2R = CalculateMuiR(R, c2R, sdm);
+        mu3R = CalculateMuiR(R, c3R, ldm);
     }
 
     return EXIT_SUCCESS;
@@ -202,8 +316,6 @@ inline int my_get_oscillation_parameters(glb_params p, void* user_data) {
     glbSetOscParams(p, mu1R, GLB_MU1R);
     glbSetOscParams(p, mu2R, GLB_MU2R);
     glbSetOscParams(p, mu3R, GLB_MU3R);
-
-    std::cout << std::format("m0: {:.6f} eV, mu1R: {:.6f}, mu2R: {:.6f}, mu3R: {:.6f}\n", m0, mu1R, mu2R, mu3R);
 
     return 0;
 }

@@ -42,8 +42,8 @@ $sampling_max = 3.0
 
 
 
-$filter_state = 0
-$filter_value = 0.05
+$filter_state = 1
+$filter_value = 0.03
 
 
 cross(#QE) < @cross_file = "../experiments/T2K_2303.03222/xsec/waterGENIE3_CCQE.dat" >

@@ -48,7 +48,7 @@ $sampling_max = 3.0
 
 
 $filter_state = 0
-$filter_value = 0.05
+$filter_value = 0.03
 
 
 cross(#NC) < @cross_file = "../experiments/T2K_2303.03222/xsec/waterGENIE3_NC.dat" >

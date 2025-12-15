@@ -19,16 +19,35 @@
 #include <globes/globes.h> /* GLoBES library */
 #include <gsl/gsl_sf_erf.h>
 #include <math.h>
-#include <mpi.h> // 添加MPI头文件
+#include <mpi.h> // MPI
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 char MYFILEN1[] = "../data/T2K/T2K_SM_fit_NH.dat";
 char MYFILEI1[] = "../data/T2K/T2K_SM_fit_IH.dat";
-
-double SQR(double x) {
+double square(double x) {
     return x * x;
+}
+double my_prior(const glb_params in, void* user_data) {
+    glb_projection p = glbAllocProjection();
+    glbGetProjection(p);
+    double aux;
+    double pv = 0.0;
+    double fitvalue, centralvalue, inputerror;
+
+    double th13Prior = asin(sqrt(0.022));
+
+    if (glbGetProjectionFlag(p, GLB_THETA_13) == GLB_FREE) {
+        fitvalue = glbGetOscParams(in, GLB_THETA_13);
+        fitvalue = square(sin(2 * fitvalue));
+        centralvalue = square(sin(2 * th13Prior));
+        inputerror = 0.0019;
+        pv += square((centralvalue - fitvalue) / inputerror);
+    }
+
+    glbFreeProjection(p);
+    return pv;
 }
 
 int main(int argc, char* argv[]) {
@@ -41,22 +60,23 @@ int main(int argc, char* argv[]) {
     glbDefineChiFunction(&ChiT2K, 4, "ChiT2K", NULL);
     /* Initialize T2K and NOvA */
     InitializeT2K(&glb_experiment_list[0], &glb_num_of_exps);
-
+    /* Select prior function (defined above) */
+    glbRegisterPriorFunction(my_prior, NULL, NULL, NULL);
     /* Define standard oscillation parameters for NO in T2K with Reactor Constraint */
-    double theta12 = asin(sqrt(0.307)); // nu-fit 5.2
-    double theta13 = asin(sqrt(0.0218));
+    double theta12 = asin(sqrt(0.307)); // T2K
+    double theta13 = asin(sqrt(0.02195));
     double theta23 = asin(sqrt(0.561));
     double deltacp = -1.97;
-    double sdm = 7.53e-5;        // nu-fit 5.2
+    double sdm = 7.49e-5;        // T2K
     double ldm = 2.494e-3 + sdm; // NO
 
     /*Obtained from T2K paper 2303.03222*/
-    double theta12_error = 0.75 * M_PI / 180; // nu-fit 5.2
-    double theta13_error = 1.91e-3;           // nu-fit 5.2
+    double theta12_error = 0.75 * M_PI / 180;
+    double theta13_error = 1.91e-3;
     double theta23_error = 1.1 * M_PI / 180;
     double deltacp_error = 1.25;
-    double sdm_error = 0.21e-5; // nu-fit 5.2
-    double ldm_error = 0.058e-3;
+    double sdm_error = 0.19e-5;
+    double ldm_error = 1e10;
 
     /* Initialize the parameter vector */
     /* Initialize parameter and projection vector(s) */
@@ -77,7 +97,7 @@ int main(int argc, char* argv[]) {
     glbSetInputErrors(input_errors);
 
     /*Set up the Projection  */
-    glbDefineProjection(T2K_projection, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
+    glbDefineProjection(T2K_projection, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FREE);
     glbSetDensityProjectionFlag(T2K_projection, GLB_FIXED, GLB_ALL);
     glbSetProjection(T2K_projection);
 
@@ -192,7 +212,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Flip hierarchy
-    glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
+    glbSetOscParams(central_values, asin(sqrt(0.563)), GLB_THETA_23);
     glbSetOscParams(central_values, -1.44 * M_PI, GLB_DELTA_CP);
     glbSetOscParams(central_values, -2.463e-3, GLB_DM_31); // DM31 = DM32 + DM21
     glbSetOscillationParameters(central_values);

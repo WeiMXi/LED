@@ -38,6 +38,8 @@ double my_prior(const glb_params in, void* user_data) {
     double aux;
     double pv = 0.0;
     double fitvalue, centralvalue, inputerror;
+    double mu1R;
+    double c1R;
 
     double th13Prior = asin(sqrt(0.022));
 
@@ -45,7 +47,7 @@ double my_prior(const glb_params in, void* user_data) {
         fitvalue = glbGetOscParams(in, GLB_THETA_13);
         fitvalue = square(sin(2 * fitvalue));
         centralvalue = square(sin(2 * th13Prior)); // 0.0857;
-        inputerror = 0.0046;
+        inputerror = 0.0019;
         pv += square((centralvalue - fitvalue) / inputerror);
     }
     if (glbGetProjectionFlag(p, GLB_DELTA_CP) == GLB_FREE) {
@@ -55,17 +57,17 @@ double my_prior(const glb_params in, void* user_data) {
         pv += square((centralvalue - fitvalue) / inputerror);
     }
 
-    if (glbGetProjectionFlag(p, LED::CalProbability::GLB_MU2R) == GLB_FREE) {
+    if (glbGetProjectionFlag(p, LED::CalProbability::GLB_MU1R) == GLB_FREE) {
         fitvalue = glbGetOscParams(in, LED::CalProbability::GLB_MU2R);
-        centralvalue = 0.0275 * sqrt(10);
-        inputerror = 0.02;
+        centralvalue = glbGetOscParams(in, LED::CalProbability::GLB_MU2R);
+        inputerror = 1e-5;
         pv += square((centralvalue - fitvalue) / inputerror);
     }
 
-    if (glbGetProjectionFlag(p, LED::CalProbability::GLB_MU3R) == GLB_FREE) {
-        fitvalue = glbGetOscParams(in, LED::CalProbability::GLB_MU3R);
-        centralvalue = 0.1598 * sqrt(10);
-        inputerror = 0.03;
+    if (glbGetProjectionFlag(p, LED::CalProbability::GLB_MU2R) == GLB_FREE) {
+        fitvalue = glbGetOscParams(in, LED::CalProbability::GLB_MU2R);
+        centralvalue = glbGetOscParams(in, LED::CalProbability::GLB_MU2R);
+        inputerror = 1e-3;
         pv += square((centralvalue - fitvalue) / inputerror);
     }
 
@@ -94,7 +96,7 @@ void set_proj_all_fixed(glb_projection in_proje) {
 void set_proj_SM_TH23_DCP_2D(glb_projection in_proje) {
     // set_proj_all_fixed(in_proje);
     /* THETA_12, THETA_13, THETA_23, DELTA_CP,  DM_21,     DM_31 */
-    glbDefineProjection(in_proje, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
+    glbDefineProjection(in_proje, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
     glbSetDensityProjectionFlag(in_proje, GLB_FIXED, GLB_ALL);
 }
 
@@ -123,10 +125,10 @@ int main(int argc, char* argv[]) {
 
     /* Define standard oscillation parameters */
     double theta12 = asin(sqrt(0.307));
-    double theta13 = asin(sqrt(0.0210));
+    double theta13 = asin(sqrt(0.02195));
     double theta23 = asin(sqrt(0.57));
     double deltacp = 0.82 * M_PI;
-    double sdm = 7.53e-5;
+    double sdm = 7.49e-5;
     double ldm = 2.41e-3 + sdm;
     glb_params central_values = glbAllocParams();
     glb_params input_errors = glbAllocParams();
@@ -135,16 +137,10 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, 10, LED::CalProbability::GLB_C1R);
     glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C2R);
     glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C3R);
-    glbSetOscParams(central_values, 0.01 / 10, LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(central_values, LED::CalProbability::CalMuiR(1, -10, sdm), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(central_values, LED::CalProbability::CalMuiR(1, -10, ldm), LED::CalProbability::GLB_MU3R); // NOvA
+    glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, sdm), LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, ldm), LED::CalProbability::GLB_MU3R); // NOvA
     LED::CalProbability::SetModesCutoff(20);
-    // std::cout << LED::CalProbability::CalMuiR(10, -2, ldm) << " " << LED::CalProbability::compute_muiR(10, -2, ldm) << std::endl;
-    //  double c1 = 0.4;
-    //  double c2 = -0.4;
-    //  double c3 = -0.4;
-    //  double mu1 = 0.001;
-    //  LED::CalProbability::SetModesCutoff(30);
 
     /* Initialize parameter vectors */
 
@@ -163,8 +159,8 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C2R);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C3R);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(input_errors, 0.01, LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(input_errors, 0.02, LED::CalProbability::GLB_MU3R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU3R);
     glbSetDensityParams(input_errors, 0.05, GLB_ALL);
 
     /* Insert central values and input errors into GLoBES */
@@ -197,10 +193,10 @@ int main(int argc, char* argv[]) {
 
     double xmin = 4;
     double xmax = 10;
-    int xsteps = 10;
-    double ymin = 0.1;
-    double ymax = 0.5;
-    int ysteps = 20;
+    int xsteps = 40;
+    double ymin = 0.5;
+    double ymax = 2;
+    int ysteps = 30;
     int total_tasks = xsteps * ysteps;
     double dx = (xmax - xmin) / xsteps;
     double dy = (ymax - ymin) / ysteps;
@@ -248,8 +244,8 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C3R);
 
         glbSetOscParams(test_values, themu1R, LED::CalProbability::GLB_MU1R);
-        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, sdm), LED::CalProbability::GLB_MU2R);
-        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, ldm), LED::CalProbability::GLB_MU3R);
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, sdm), LED::CalProbability::GLB_MU2R);
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, ldm), LED::CalProbability::GLB_MU3R);
         // std::cout << sqrt(LED::CalProbability::CalLightestm2(theR, theAbsCR, themu1R)) * LED::CalProbability::mum_to_eVinv(theR) << std::endl;
         res = glbChiNP(test_values, minimum, GLB_ALL);
 
@@ -326,10 +322,24 @@ int main(int argc, char* argv[]) {
     // Flip hierarchy
     glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
     glbSetOscParams(central_values, 1.52 * M_PI, GLB_DELTA_CP);
-    sdm = 7.49e-5;
-    ldm = 2.41e-3 - sdm;
+    glbSetOscParams(central_values, -2.45e-3 + sdm, GLB_DM_31); // DM31 = DM32 + DM21
+
+    glbSetOscParams(central_values, 1, LED::CalProbability::GLB_R);
+    glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C1R);
+    glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C2R);
+    glbSetOscParams(central_values, 10, LED::CalProbability::GLB_C3R);
+
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.45e-3 - sdm), LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.45e-3), LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU3R); // NOvA
     glbSetOscillationParameters(central_values);
     glbSetRates();
+
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU1R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU2R);
+    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU3R);
+
+    glbSetProjection(my_projection);
 
     glbCopyParams(central_values, test_values);
     start_time = MPI_Wtime();
@@ -347,22 +357,19 @@ int main(int argc, char* argv[]) {
         /* Set vector of test values */
         theAbsCR = local_x;
         themu3R = local_y;
-        // double hc1 = theAbsCR * theAbsCR + (std::numbers::pi * theAbsCR - 1) * themu1R;
-        // double h0 = LED::CalProbability::hi_zero(theAbsCR, themu1R);
-        // std::cout << hc1 << " " << h0 << std::endl;
 
         glbSetOscParams(test_values, theR, LED::CalProbability::GLB_R);
-        glbSetOscParams(test_values, theAbsCR, LED::CalProbability::GLB_C1R);
+        glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C1R);
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C2R);
-        glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C3R);
+        glbSetOscParams(test_values, theAbsCR, LED::CalProbability::GLB_C3R);
 
-        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, 2.51e-3 - 7.49e-5), LED::CalProbability::GLB_MU1R);
-        glbSetOscParams(test_values, LED::CalProbability::compute_muiR(theR, -theAbsCR, 2.51e-3), LED::CalProbability::GLB_MU2R);
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, 2.45e-3 - 7.49e-5), LED::CalProbability::GLB_MU1R);
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, 2.45e-3), LED::CalProbability::GLB_MU2R);
         glbSetOscParams(test_values, themu3R, LED::CalProbability::GLB_MU3R);
-        // std::cout << sqrt(LED::CalProbability::CalLightestm2(10, theAbsCR, themu1R)) * LED::CalProbability::mum_to_eVinv(10) << std::endl;
+        // std::cout << sqrt(LED::CalProbability::CalLightestm2(10, theAbsCR, themu1R)) << std::endl;
         res = glbChiNP(test_values, minimum, GLB_ALL);
 
-        printf("%f %f %f\n", theAbsCR, themu1R, res);
+        printf("%f %f %f \n", theAbsCR, themu3R, res);
         local_res[t] = res;
         double local_elapsed = MPI_Wtime() - start_time;
 
