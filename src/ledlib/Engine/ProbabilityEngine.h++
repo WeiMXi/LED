@@ -73,14 +73,14 @@ static int modes;                                 // modes cutoff in 5d bulk
 double mum_to_eVinv(const double x) { return x * 5.06773; }
 double eVinv_to_mum(const double x) { return x / 5.06773; }
 
-// inline double CalMuiR(const double r, const double ciR, const double mi2) {
-//     double r_eVinv = mum_to_eVinv(r);
-//     if (std::abs(ciR) > TOLERANCE) {
-//         return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
-//     } else {
-//         return sqrt(mi2 * (r_eVinv) * (r_eVinv));
-//     }
-// }
+inline double CalMuiR(const double r, const double ciR, const double mi2) {
+    double r_eVinv = mum_to_eVinv(r);
+    if (std::abs(ciR) > TOLERANCE) {
+        return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
+    } else {
+        return sqrt(mi2 * (r_eVinv) * (r_eVinv));
+    }
+}
 
 inline double CalculateMuiR(const double r, const double ciR, const double mi2) {
     double y{}, muiR2{};
@@ -564,9 +564,8 @@ inline int prob_matrix_5dnu(double (*P)[3], const int cp_sign, const double E, c
                     const gsl_complex U_bj = gsl_matrix_complex_get(UL, beta, j);
 
                     // compute phase difference
-                    // dPhi = phi_j - phi_i
-                    // attention the order here is inverted compare to the U_ai U*_bi U*_aj U_bj
-                    const double dPhi = phases[j] - phases[i];
+                    // dPhi = phi_i - phi_j
+                    double dPhi = phases[j] - phases[i];
 
                     // apply low-pass filter
                     // dPhi(\Phi_{ij} in manual) is already contains L/2E factor

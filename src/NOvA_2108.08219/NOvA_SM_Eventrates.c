@@ -66,9 +66,9 @@ int main(int argc, char* argv[]) {
     glbSetRates();
 
     InitOutput(MYFILE, "");
-    for (int i = 1; i <= 1000; i++) {
-        double prob = glbFilteredConstantDensityProbability(0, 2, 1, 1, i * 0.004);
-        AddToOutput2(i * 0.004, prob);
+    for (int i = 1; i <= 2000; i++) {
+        double prob = glbFilteredConstantDensityProbability(0, 2, 1, 1, i * 0.002);
+        AddToOutput2(i * 0.002, prob);
     }
 
     /* Obtain lists for the energy bins in the considered samples */

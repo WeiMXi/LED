@@ -45,28 +45,28 @@ int main(int argc, char* argv[]) {
     // const double ldm = 2.494e-3 + sdm; // 2303.03222
 
     /*parameters for NOvA*/
-    double theta12 = asin(sqrt(0.307)); // 2108
-    double theta13 = asin(sqrt(0.021)); // 2108
-    double theta23 = asin(sqrt(0.57));  // 2108 result
-    double deltacp = 0.82 * M_PI;       // 2108 result
-    double sdm = 7.53e-5;               // 2108
-    double ldm = 2.41e-3 + sdm;         // 2108 result
+    double theta12 = asin(sqrt(0.307));   // 2108
+    double theta13 = asin(sqrt(0.02195)); // 2108
+    double theta23 = asin(sqrt(0.57));    // 2108 result
+    double deltacp = 0.82 * M_PI;         // 2108 result
+    double sdm = 7.49e-5;                 // 2108
+    double ldm = 2.41e-3 + sdm;           // 2108 result
 
     glb_params central_values = glbAllocParams();
     glbDefineParams(central_values, theta12, theta13, theta23, deltacp, sdm, ldm);
 
-    glbSetOscParams(central_values, 10, LED::CalProbability::GLB_R);
-    glbSetOscParams(central_values, 4, LED::CalProbability::GLB_C1R);
-    glbSetOscParams(central_values, -4, LED::CalProbability::GLB_C2R);
-    glbSetOscParams(central_values, -4, LED::CalProbability::GLB_C3R);
+    glbSetOscParams(central_values, 1, LED::CalProbability::GLB_R);
+    glbSetOscParams(central_values, 10, LED::CalProbability::GLB_C1R);
+    glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C2R);
+    glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C3R);
     // glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU1R);
     // glbSetOscParams(central_values, 0.0275, LED::CalProbability::GLB_MU2R);
     // glbSetOscParams(central_values, 0.1603, LED::CalProbability::GLB_MU3R); // T2K
     // glbSetOscParams(central_values, 0.1598, LED::CalProbability::GLB_MU3R); // NOvA
-    glbSetOscParams(central_values, 2, LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(central_values, 1, LED::CalProbability::GLB_MU1R);
     // std::cout << LED::CalProbability::CalLightestm2(10, 4, 0.5) << std::endl;
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(10, -4, sdm), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(10, -4, ldm), LED::CalProbability::GLB_MU3R);
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, sdm), LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, ldm), LED::CalProbability::GLB_MU3R);
     LED::CalProbability::SetModesCutoff(20);
 
     glbSetOscillationParameters(central_values);
