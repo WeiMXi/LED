@@ -365,17 +365,17 @@ inline void make_RRH(gsl_matrix_complex* RRH, gsl_matrix_complex* U,
  *
  * @param P probability matrix
  * @param cp_sign
- * @param E energy
- * @param length baseline
- * @param density
+ * @param E energy [GeV]
+ * @param length baseline [km]
+ * @param density [g/cm^3]
  * @param sigma low-pass filter sigma
  * @return int
  */
 inline int prob_matrix_5dnu(double (*P)[3], const int cp_sign, const double E, const double length, const double density, const double sigma) {
     // E [GeV], length [km], density [g/cm^3]
 
-    double R_eVinv = mum_to_eVinv(R);       // [eV^{-1}]
-    double L_GeVinv = mum_to_eVinv(length); // [GeV^{-1}]
+    const double R_eVinv = mum_to_eVinv(R);       // [eV^{-1}]
+    const double L_GeVinv = mum_to_eVinv(length); // [GeV^{-1}]
 
 #ifndef HAVE_CUDA
     gsl_eigen_hermv_workspace* work = gsl_eigen_hermv_alloc(3 * modes);
@@ -430,7 +430,7 @@ inline int prob_matrix_5dnu(double (*P)[3], const int cp_sign, const double E, c
     // formula: P_ab = Sum_{i,j} U_ai U*_bi U*_aj U_bj * exp(-i * dPhi) * Damping
 
     // compute constant term of filter coefficients: -0.5 * (sigma/E)^2
-    double filter_const = -0.5 * sq(sigma / E);
+    const double filter_const = -0.5 * sq(sigma / E);
 
     for (int alpha = 0; alpha < 3; alpha++) {  // inital flavor
         for (int beta = 0; beta < 3; beta++) { // final flavor
@@ -438,45 +438,46 @@ inline int prob_matrix_5dnu(double (*P)[3], const int cp_sign, const double E, c
 
             for (int i = 0; i < 3 * modes; i++) {
                 // get mix matrix element U_alpha_i and U_beta_i
-                gsl_complex U_ai = gsl_matrix_complex_get(UL, alpha, i);
-                gsl_complex U_bi = gsl_matrix_complex_get(UL, beta, i);
+                const gsl_complex U_ai = gsl_matrix_complex_get(UL, alpha, i);
+                const gsl_complex U_bi = gsl_matrix_complex_get(UL, beta, i);
 
                 // diagonal elements need not filter
                 // herm P = |Sum|^2 = Sum |term|^2 + 2 Re(Sum cross_terms)
-                double term_diag = gsl_complex_abs2(U_ai) * gsl_complex_abs2(U_bi);
+                const double term_diag = gsl_complex_abs2(U_ai) * gsl_complex_abs2(U_bi);
                 prob_sum += term_diag;
 
                 // interference term (j > i)
                 for (int j = i + 1; j < 3 * modes; j++) {
-                    gsl_complex U_aj = gsl_matrix_complex_get(UL, alpha, j);
-                    gsl_complex U_bj = gsl_matrix_complex_get(UL, beta, j);
+                    const gsl_complex U_aj = gsl_matrix_complex_get(UL, alpha, j);
+                    const gsl_complex U_bj = gsl_matrix_complex_get(UL, beta, j);
 
                     // compute phase difference
-                    // dPhi = phi_i - phi_j
-                    double dPhi = phases[i] - phases[j];
+                    // dPhi = phi_j - phi_i
+                    // attention the order here is inverted compare to the U_ai U*_bi U*_aj U_bj
+                    const double dPhi = phases[j] - phases[i];
 
                     // apply low-pass filter
                     // dPhi(\Phi_{ij} in manual) is already contains L/2E factor
                     // Damping = exp( -0.5 * (sigma/E * dPhi)^2 )
-                    double damping = std::exp(filter_const * sq(dPhi));
+                    const double damping = std::exp(filter_const * sq(dPhi));
 
                     // if damping is too small (< 1e-9), skip this term to speed up
                     if (damping < 1e-9) continue;
 
                     // compute : J = U_ai * conj(U_bi) * conj(U_aj) * U_bj
                     // formula: P = |A|^2 = A * A*
-                    // Term_ij = (U_ai U*_bi) * (U_aj U*_bj)* * e^{-i(phi_i - phi_j)}
+                    // Term_ij = (U_ai U*_bi) * (U_aj U*_bj)* * e^{-i(phi_j - phi_i)}
                     //         = U_ai U*_bi U*_aj U_bj * (cos(dPhi) - i*sin(dPhi))
 
-                    gsl_complex J = gsl_complex_mul(
+                    const gsl_complex J = gsl_complex_mul(
                         gsl_complex_mul(U_ai, gsl_complex_conjugate(U_bi)),
                         gsl_complex_mul(gsl_complex_conjugate(U_aj), U_bj));
 
-                    double cos_phi = std::cos(dPhi);
-                    double sin_phi = std::sin(dPhi);
+                    const double cos_phi = std::cos(dPhi);
+                    const double sin_phi = std::sin(dPhi);
 
                     // get real part: Re(J * (cos - i*sin)) = Re(J)*cos + Im(J)*sin
-                    double real_part = GSL_REAL(J) * cos_phi + GSL_IMAG(J) * sin_phi;
+                    const double real_part = GSL_REAL(J) * cos_phi + GSL_IMAG(J) * sin_phi;
 
                     // double because j<i and j>i are conjugated
                     // times 2 filter factor
