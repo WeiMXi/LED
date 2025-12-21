@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     double theta13 = asin(sqrt(0.02195));
     double theta23 = asin(sqrt(0.561));
     double deltacp = -1.97;
-    double sdm = 7.49e-5;        // nu-fit 5.2
+    double sdm = 7.49e-5;        // nu-fit 6.0
     double ldm = 2.494e-3 + sdm; // NO
     /* Set the parameter vector */
     glbSetOscParams(central_values, 1, LED::CalProbability::GLB_R);
@@ -66,11 +66,11 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU1R);
     glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, sdm), LED::CalProbability::GLB_MU2R);
     glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, ldm), LED::CalProbability::GLB_MU3R); // T2K
-    LED::CalProbability::SetModesCutoff(20);
+    LED::CalProbability::SetModesCutoff(40);
 
     /*Obtained from T2K paper 2303.03222*/
     double theta12_error = 0.75 * M_PI / 180;
-    double theta13_error = 1.91e-3;
+    double theta13_error = 1.9e-3;
     double theta23_error = 1.1 * M_PI / 180;
     double deltacp_error = 1.25;
     double sdm_error = 0.19e-5;
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     glbSetInputErrors(input_errors);
 
     /*Set up the Projection  */
-    glbDefineProjection(T2K_projection, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
+    glbDefineProjection(T2K_projection, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_R);
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C1R);
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C2R);
@@ -122,8 +122,8 @@ int main(int argc, char* argv[]) {
     /* Initiate a parameter vector for the scan */
     glbCopyParams(central_values, test_values);
 
-    double xmin = 4;
-    double xmax = 10;
+    double xmin = 2;
+    double xmax = 8;
     int xsteps = 40;
     double ymin = 0.1;
     double ymax = 1.5;
@@ -249,6 +249,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Flip hierarchy
+    glbSetOscParams(central_values, asin(sqrt(0.02224)), GLB_THETA_13);
     glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
     glbSetOscParams(central_values, -1.44, GLB_DELTA_CP);
     glbSetOscParams(central_values, 1, LED::CalProbability::GLB_R);

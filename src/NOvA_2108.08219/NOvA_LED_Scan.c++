@@ -19,8 +19,8 @@ extern "C" {
 
 #include <globes/globes.h> // GLoBES library
 
-const std::string MYFILEN1 = "../data/NOvA/NOvA_LED_Scan_normal_10.dat";
-const std::string MYFILEI1 = "../data/NOvA/NOvA_LED_Scan_inverted_10.dat";
+const std::string MYFILEN1 = "../data/NOvA/NOvA_LED_Scan_NH.dat";
+const std::string MYFILEI1 = "../data/NOvA/NOvA_LED_Scan_IH.dat";
 LED::IO::Output outputFiles;
 
 static int global_counter = 0;
@@ -48,26 +48,6 @@ double my_prior(const glb_params in, void* user_data) {
         fitvalue = square(sin(2 * fitvalue));
         centralvalue = square(sin(2 * th13Prior)); // 0.0857;
         inputerror = 0.0019;
-        pv += square((centralvalue - fitvalue) / inputerror);
-    }
-    if (glbGetProjectionFlag(p, GLB_DELTA_CP) == GLB_FREE) {
-        fitvalue = glbGetOscParams(in, GLB_DELTA_CP);
-        centralvalue = 0.82 * M_PI;
-        inputerror = 0.27 * M_PI;
-        pv += square((centralvalue - fitvalue) / inputerror);
-    }
-
-    if (glbGetProjectionFlag(p, LED::CalProbability::GLB_MU1R) == GLB_FREE) {
-        fitvalue = glbGetOscParams(in, LED::CalProbability::GLB_MU2R);
-        centralvalue = glbGetOscParams(in, LED::CalProbability::GLB_MU2R);
-        inputerror = 1e-5;
-        pv += square((centralvalue - fitvalue) / inputerror);
-    }
-
-    if (glbGetProjectionFlag(p, LED::CalProbability::GLB_MU2R) == GLB_FREE) {
-        fitvalue = glbGetOscParams(in, LED::CalProbability::GLB_MU2R);
-        centralvalue = glbGetOscParams(in, LED::CalProbability::GLB_MU2R);
-        inputerror = 1e-3;
         pv += square((centralvalue - fitvalue) / inputerror);
     }
 
@@ -194,8 +174,8 @@ int main(int argc, char* argv[]) {
     double xmin = 4;
     double xmax = 10;
     int xsteps = 40;
-    double ymin = 0.5;
-    double ymax = 2;
+    double ymin = 0.1;
+    double ymax = 1.5;
     int ysteps = 30;
     int total_tasks = xsteps * ysteps;
     double dx = (xmax - xmin) / xsteps;
@@ -320,6 +300,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Flip hierarchy
+    glbSetOscParams(central_values, asin(sqrt(0.02224)), GLB_THETA_13);
     glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
     glbSetOscParams(central_values, 1.52 * M_PI, GLB_DELTA_CP);
     glbSetOscParams(central_values, -2.45e-3 + sdm, GLB_DM_31); // DM31 = DM32 + DM21

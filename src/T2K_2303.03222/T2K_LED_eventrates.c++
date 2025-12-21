@@ -30,29 +30,29 @@ std::string MYFILE3_4Dfinite = "../data/T2K/LED/T2K_nue_FHC_4Dfinite.dat";
 std::string MYFILE4_4Dfinite = "../data/T2K/LED/T2K_nue_RHC_4Dfinite.dat";
 std::string MYFILE5_4Dfinite = "../data/T2K/LED/T2K_nueCCpi_4Dfinite.dat";
 
-std::string MYFILE1_cirp5 = "../data/T2K/LED/T2K_numu_FHC_cir+5.dat";
-std::string MYFILE2_cirp5 = "../data/T2K/LED/T2K_numu_RHC_cir+5.dat";
-std::string MYFILE3_cirp5 = "../data/T2K/LED/T2K_nue_FHC_cir+5.dat";
-std::string MYFILE4_cirp5 = "../data/T2K/LED/T2K_nue_RHC_cir+5.dat";
-std::string MYFILE5_cirp5 = "../data/T2K/LED/T2K_nueCCpi_cir+5.dat";
+const std::string MYFILE1_cir4 = "../data/T2K/LED/T2K_numu_FHC_cir4.dat";
+const std::string MYFILE2_cir4 = "../data/T2K/LED/T2K_numu_RHC_cir4.dat";
+const std::string MYFILE3_cir4 = "../data/T2K/LED/T2K_nue_FHC_cir4.dat";
+const std::string MYFILE4_cir4 = "../data/T2K/LED/T2K_nue_RHC_cir4.dat";
+const std::string MYFILE5_cir4 = "../data/T2K/LED/T2K_nueCCpi_cir4.dat";
 
-std::string MYFILE1_cirn5 = "../data/T2K/LED/T2K_numu_FHC_cir-5.dat";
-std::string MYFILE2_cirn5 = "../data/T2K/LED/T2K_numu_RHC_cir-5.dat";
-std::string MYFILE3_cirn5 = "../data/T2K/LED/T2K_nue_FHC_cir-5.dat";
-std::string MYFILE4_cirn5 = "../data/T2K/LED/T2K_nue_RHC_cir-5.dat";
-std::string MYFILE5_cirn5 = "../data/T2K/LED/T2K_nueCCpi_cir-5.dat";
+const std::string MYFILE1_cir8 = "../data/T2K/LED/T2K_numu_FHC_cir8.dat";
+const std::string MYFILE2_cir8 = "../data/T2K/LED/T2K_numu_RHC_cir8.dat";
+const std::string MYFILE3_cir8 = "../data/T2K/LED/T2K_nue_FHC_cir8.dat";
+const std::string MYFILE4_cir8 = "../data/T2K/LED/T2K_nue_RHC_cir8.dat";
+const std::string MYFILE5_cir8 = "../data/T2K/LED/T2K_nueCCpi_cir8.dat";
 
-std::string MYFILE1_muirp5 = "../data/T2K/LED/T2K_numu_FHC_muir+0.005.dat";
-std::string MYFILE2_muirp5 = "../data/T2K/LED/T2K_numu_RHC_muir+0.005.dat";
-std::string MYFILE3_muirp5 = "../data/T2K/LED/T2K_nue_FHC_muir+0.005.dat";
-std::string MYFILE4_muirp5 = "../data/T2K/LED/T2K_nue_RHC_muir+0.005.dat";
-std::string MYFILE5_muirp5 = "../data/T2K/LED/T2K_nueCCpi_muir+0.005.dat";
+const std::string MYFILE1_muir1 = "../data/T2K/LED/T2K_numu_FHC_muir1.dat";
+const std::string MYFILE2_muir1 = "../data/T2K/LED/T2K_numu_RHC_muir1.dat";
+const std::string MYFILE3_muir1 = "../data/T2K/LED/T2K_nue_FHC_muir1.dat";
+const std::string MYFILE4_muir1 = "../data/T2K/LED/T2K_nue_RHC_muir1.dat";
+const std::string MYFILE5_muir1 = "../data/T2K/LED/T2K_nueCCpi_muir1.dat";
 
-std::string MYFILE1_muirn5 = "../data/T2K/LED/T2K_numu_FHC_muir-0.005.dat";
-std::string MYFILE2_muirn5 = "../data/T2K/LED/T2K_numu_RHC_muir-0.005.dat";
-std::string MYFILE3_muirn5 = "../data/T2K/LED/T2K_nue_FHC_muir-0.005.dat";
-std::string MYFILE4_muirn5 = "../data/T2K/LED/T2K_nue_RHC_muir-0.005.dat";
-std::string MYFILE5_muirn5 = "../data/T2K/LED/T2K_nueCCpi_muir-0.005.dat";
+const std::string MYFILE1_muir15 = "../data/T2K/LED/T2K_numu_FHC_muir1.5.dat";
+const std::string MYFILE2_muir15 = "../data/T2K/LED/T2K_numu_RHC_muir1.5.dat";
+const std::string MYFILE3_muir15 = "../data/T2K/LED/T2K_nue_FHC_muir1.5.dat";
+const std::string MYFILE4_muir15 = "../data/T2K/LED/T2K_nue_RHC_muir1.5.dat";
+const std::string MYFILE5_muir15 = "../data/T2K/LED/T2K_nueCCpi_muir1.5.dat";
 
 LED::IO::Output outputFiles;
 
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(true_values, 0.1, LED::CalProbability::GLB_MU1R);
     glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(1, -10, sdm), LED::CalProbability::GLB_MU2R);
     glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(1, -10, ldm), LED::CalProbability::GLB_MU3R); // T2K
-    LED::CalProbability::SetModesCutoff(50);
+    LED::CalProbability::SetModesCutoff(40);
 
     /* Set the parameter vector */
     glbDefineParams(true_values, theta12, theta13, theta23, deltacp, sdm, ldm);
@@ -161,17 +161,17 @@ int main(int argc, char* argv[]) {
     }
 
     glbSetOscParams(true_values, 10, LED::CalProbability::GLB_R);
-    glbSetOscParams(true_values, 10, LED::CalProbability::GLB_C1R);
-    glbSetOscParams(true_values, -10, LED::CalProbability::GLB_C2R);
-    glbSetOscParams(true_values, -10, LED::CalProbability::GLB_C3R);
+    glbSetOscParams(true_values, 4, LED::CalProbability::GLB_C1R);
+    glbSetOscParams(true_values, -4, LED::CalProbability::GLB_C2R);
+    glbSetOscParams(true_values, -4, LED::CalProbability::GLB_C3R);
     glbSetOscParams(true_values, 0.1, LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -10, sdm), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -10, ldm), LED::CalProbability::GLB_MU3R); // T2K
+    glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -4, sdm), LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -4, ldm), LED::CalProbability::GLB_MU3R); // T2K
     glbSetOscillationParameters(true_values);
     glbSetRates();
 
     /* Compute event rate spectra for the neutrino muon-like sample in Super-Kamiokande */
-    outputFiles.InitOutput(MYFILE1_cirp5, "");
+    outputFiles.InitOutput(MYFILE1_cir4, "");
     true_rates_N0 = glbGetRuleRatePtr(0, 0);
     true_rates_N1 = glbGetSignalRatePtr(0, 0); // Neutrino beam muon-like events rates
     true_rates_N2 = glbGetBGRatePtr(0, 0);
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* Compute event rate spectra for the antineutrino muon-like sample in Super-Kamiokande */
-    outputFiles.InitOutput(MYFILE2_cirp5, "");
+    outputFiles.InitOutput(MYFILE2_cir4, "");
     true_rates_N0 = glbGetRuleRatePtr(1, 0);
     true_rates_N1 = glbGetSignalRatePtr(1, 0); // Neutrino beam antimuon-like events rates
     true_rates_N2 = glbGetBGRatePtr(1, 0);
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* Compute event rate spectra for the neutrino electron-like sample in Super-Kamiokande */
-    outputFiles.InitOutput(MYFILE3_cirp5, "");
+    outputFiles.InitOutput(MYFILE3_cir4, "");
     true_rates_N0 = glbGetRuleRatePtr(2, 0);
     true_rates_N1 = glbGetSignalRatePtr(2, 0); // 1Re FHC event
     true_rates_N2 = glbGetBGRatePtr(2, 0);
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
         outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
     }
 
-    outputFiles.InitOutput(MYFILE4_cirp5, "");
+    outputFiles.InitOutput(MYFILE4_cir4, "");
     true_rates_N0 = glbGetRuleRatePtr(2, 1);
     true_rates_N1 = glbGetSignalRatePtr(2, 1); // 1Re RHC event
     true_rates_N2 = glbGetBGRatePtr(2, 1);
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
         outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
     }
 
-    outputFiles.InitOutput(MYFILE5_cirp5, "");
+    outputFiles.InitOutput(MYFILE5_cir4, "");
     true_rates_N0 = glbGetRuleRatePtr(2, 2);
     true_rates_N1 = glbGetSignalRatePtr(2, 2); // 1Re1de event
     true_rates_N2 = glbGetBGRatePtr(2, 2);
@@ -214,17 +214,17 @@ int main(int argc, char* argv[]) {
     }
 
     glbSetOscParams(true_values, 10, LED::CalProbability::GLB_R);
-    glbSetOscParams(true_values, 20, LED::CalProbability::GLB_C1R);
-    glbSetOscParams(true_values, -20, LED::CalProbability::GLB_C2R);
-    glbSetOscParams(true_values, -20, LED::CalProbability::GLB_C3R);
+    glbSetOscParams(true_values, 8, LED::CalProbability::GLB_C1R);
+    glbSetOscParams(true_values, -8, LED::CalProbability::GLB_C2R);
+    glbSetOscParams(true_values, -8, LED::CalProbability::GLB_C3R);
     glbSetOscParams(true_values, 0.1, LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -20, sdm), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -20, ldm), LED::CalProbability::GLB_MU3R); // T2K
+    glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -8, sdm), LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -8, ldm), LED::CalProbability::GLB_MU3R); // T2K
     glbSetOscillationParameters(true_values);
     glbSetRates();
 
     /* Compute event rate spectra for the neutrino muon-like sample in Super-Kamiokande */
-    outputFiles.InitOutput(MYFILE1_cirn5, "");
+    outputFiles.InitOutput(MYFILE1_cir8, "");
     true_rates_N0 = glbGetRuleRatePtr(0, 0);
     true_rates_N1 = glbGetSignalRatePtr(0, 0); // Neutrino beam muon-like events rates
     true_rates_N2 = glbGetBGRatePtr(0, 0);
@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* Compute event rate spectra for the antineutrino muon-like sample in Super-Kamiokande */
-    outputFiles.InitOutput(MYFILE2_cirn5, "");
+    outputFiles.InitOutput(MYFILE2_cir8, "");
     true_rates_N0 = glbGetRuleRatePtr(1, 0);
     true_rates_N1 = glbGetSignalRatePtr(1, 0); // Neutrino beam antimuon-like events rates
     true_rates_N2 = glbGetBGRatePtr(1, 0);
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* Compute event rate spectra for the neutrino electron-like sample in Super-Kamiokande */
-    outputFiles.InitOutput(MYFILE3_cirn5, "");
+    outputFiles.InitOutput(MYFILE3_cir8, "");
     true_rates_N0 = glbGetRuleRatePtr(2, 0);
     true_rates_N1 = glbGetSignalRatePtr(2, 0); // 1Re FHC event
     true_rates_N2 = glbGetBGRatePtr(2, 0);
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
         outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
     }
 
-    outputFiles.InitOutput(MYFILE4_cirn5, "");
+    outputFiles.InitOutput(MYFILE4_cir8, "");
     true_rates_N0 = glbGetRuleRatePtr(2, 1);
     true_rates_N1 = glbGetSignalRatePtr(2, 1); // 1Re RHC event
     true_rates_N2 = glbGetBGRatePtr(2, 1);
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
         outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
     }
 
-    outputFiles.InitOutput(MYFILE5_cirn5, "");
+    outputFiles.InitOutput(MYFILE5_cir8, "");
     true_rates_N0 = glbGetRuleRatePtr(2, 2);
     true_rates_N1 = glbGetSignalRatePtr(2, 2); // 1Re1de event
     true_rates_N2 = glbGetBGRatePtr(2, 2);
@@ -270,14 +270,14 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(true_values, 10, LED::CalProbability::GLB_C1R);
     glbSetOscParams(true_values, -10, LED::CalProbability::GLB_C2R);
     glbSetOscParams(true_values, -10, LED::CalProbability::GLB_C3R);
-    glbSetOscParams(true_values, 0.5, LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(true_values, 1, LED::CalProbability::GLB_MU1R);
     glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -10, sdm), LED::CalProbability::GLB_MU2R);
     glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -10, ldm), LED::CalProbability::GLB_MU3R); // T2K
     glbSetOscillationParameters(true_values);
     glbSetRates();
 
     /* Compute event rate spectra for the neutrino muon-like sample in Super-Kamiokande */
-    outputFiles.InitOutput(MYFILE1_muirp5, "");
+    outputFiles.InitOutput(MYFILE1_muir1, "");
     true_rates_N0 = glbGetRuleRatePtr(0, 0);
     true_rates_N1 = glbGetSignalRatePtr(0, 0); // Neutrino beam muon-like events rates
     true_rates_N2 = glbGetBGRatePtr(0, 0);
@@ -286,7 +286,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* Compute event rate spectra for the antineutrino muon-like sample in Super-Kamiokande */
-    outputFiles.InitOutput(MYFILE2_muirp5, "");
+    outputFiles.InitOutput(MYFILE2_muir1, "");
     true_rates_N0 = glbGetRuleRatePtr(1, 0);
     true_rates_N1 = glbGetSignalRatePtr(1, 0); // Neutrino beam antimuon-like events rates
     true_rates_N2 = glbGetBGRatePtr(1, 0);
@@ -295,7 +295,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* Compute event rate spectra for the neutrino electron-like sample in Super-Kamiokande */
-    outputFiles.InitOutput(MYFILE3_muirp5, "");
+    outputFiles.InitOutput(MYFILE3_muir1, "");
     true_rates_N0 = glbGetRuleRatePtr(2, 0);
     true_rates_N1 = glbGetSignalRatePtr(2, 0); // 1Re FHC event
     true_rates_N2 = glbGetBGRatePtr(2, 0);
@@ -303,7 +303,7 @@ int main(int argc, char* argv[]) {
         outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
     }
 
-    outputFiles.InitOutput(MYFILE4_muirp5, "");
+    outputFiles.InitOutput(MYFILE4_muir1, "");
     true_rates_N0 = glbGetRuleRatePtr(2, 1);
     true_rates_N1 = glbGetSignalRatePtr(2, 1); // 1Re RHC event
     true_rates_N2 = glbGetBGRatePtr(2, 1);
@@ -311,7 +311,7 @@ int main(int argc, char* argv[]) {
         outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
     }
 
-    outputFiles.InitOutput(MYFILE5_muirp5, "");
+    outputFiles.InitOutput(MYFILE5_muir1, "");
     true_rates_N0 = glbGetRuleRatePtr(2, 2);
     true_rates_N1 = glbGetSignalRatePtr(2, 2); // 1Re1de event
     true_rates_N2 = glbGetBGRatePtr(2, 2);
@@ -319,54 +319,58 @@ int main(int argc, char* argv[]) {
         outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
     }
 
-    // glbSetOscParams(true_values, -0.005 + 0.01, GLB_MU1R);
-    // glbSetOscParams(true_values, -0.005 + 0.0275, GLB_MU2R);
-    // glbSetOscParams(true_values, -0.005 + 0.1603, GLB_MU3R);
-    // glbSetOscillationParameters(true_values);
-    // glbSetRates();
+    glbSetOscParams(true_values, 10, LED::CalProbability::GLB_R);
+    glbSetOscParams(true_values, 10, LED::CalProbability::GLB_C1R);
+    glbSetOscParams(true_values, -10, LED::CalProbability::GLB_C2R);
+    glbSetOscParams(true_values, -10, LED::CalProbability::GLB_C3R);
+    glbSetOscParams(true_values, 1.5, LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -10, sdm), LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(true_values, LED::CalProbability::CalculateMuiR(10, -10, ldm), LED::CalProbability::GLB_MU3R); // T2K
+    glbSetOscillationParameters(true_values);
+    glbSetRates();
 
-    // /* Compute event rate spectra for the neutrino muon-like sample in Super-Kamiokande */
-    // InitOutput(MYFILE1_muirn5, "");
-    // true_rates_N0 = glbGetRuleRatePtr(0, 0);
-    // true_rates_N1 = glbGetSignalRatePtr(0, 0); // Neutrino beam muon-like events rates
-    // true_rates_N2 = glbGetBGRatePtr(0, 0);
-    // for (int i = 0; i <= n_bins1 - 1; i++) {
-    //     AddToOutput(numu_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], numu_bin_widths[i]);
-    // }
+    /* Compute event rate spectra for the neutrino muon-like sample in Super-Kamiokande */
+    outputFiles.InitOutput(MYFILE1_muir15, "");
+    true_rates_N0 = glbGetRuleRatePtr(0, 0);
+    true_rates_N1 = glbGetSignalRatePtr(0, 0); // Neutrino beam muon-like events rates
+    true_rates_N2 = glbGetBGRatePtr(0, 0);
+    for (int i = 0; i <= n_bins1 - 1; i++) {
+        outputFiles.AddToOutput(numu_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], numu_bin_widths[i]);
+    }
 
-    // /* Compute event rate spectra for the antineutrino muon-like sample in Super-Kamiokande */
-    // InitOutput(MYFILE2_muirn5, "");
-    // true_rates_N0 = glbGetRuleRatePtr(1, 0);
-    // true_rates_N1 = glbGetSignalRatePtr(1, 0); // Neutrino beam antimuon-like events rates
-    // true_rates_N2 = glbGetBGRatePtr(1, 0);
-    // for (int i = 0; i <= n_bins2 - 1; i++) {
-    //     AddToOutput(numubar_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], numubar_bin_widths[i]);
-    // }
+    /* Compute event rate spectra for the antineutrino muon-like sample in Super-Kamiokande */
+    outputFiles.InitOutput(MYFILE2_muir15, "");
+    true_rates_N0 = glbGetRuleRatePtr(1, 0);
+    true_rates_N1 = glbGetSignalRatePtr(1, 0); // Neutrino beam antimuon-like events rates
+    true_rates_N2 = glbGetBGRatePtr(1, 0);
+    for (int i = 0; i <= n_bins2 - 1; i++) {
+        outputFiles.AddToOutput(numubar_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], numubar_bin_widths[i]);
+    }
 
-    // /* Compute event rate spectra for the neutrino electron-like sample in Super-Kamiokande */
-    // InitOutput(MYFILE3_muirn5, "");
-    // true_rates_N0 = glbGetRuleRatePtr(2, 0);
-    // true_rates_N1 = glbGetSignalRatePtr(2, 0); // 1Re FHC event
-    // true_rates_N2 = glbGetBGRatePtr(2, 0);
-    // for (int i = 0; i <= n_bins3 - 1; i++) {
-    //     AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
-    // }
+    /* Compute event rate spectra for the neutrino electron-like sample in Super-Kamiokande */
+    outputFiles.InitOutput(MYFILE3_muir15, "");
+    true_rates_N0 = glbGetRuleRatePtr(2, 0);
+    true_rates_N1 = glbGetSignalRatePtr(2, 0); // 1Re FHC event
+    true_rates_N2 = glbGetBGRatePtr(2, 0);
+    for (int i = 0; i <= n_bins3 - 1; i++) {
+        outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
+    }
 
-    // InitOutput(MYFILE4_muirn5, "");
-    // true_rates_N0 = glbGetRuleRatePtr(2, 1);
-    // true_rates_N1 = glbGetSignalRatePtr(2, 1); // 1Re RHC event
-    // true_rates_N2 = glbGetBGRatePtr(2, 1);
-    // for (int i = 0; i <= n_bins3 - 1; i++) {
-    //     AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
-    // }
+    outputFiles.InitOutput(MYFILE4_muir15, "");
+    true_rates_N0 = glbGetRuleRatePtr(2, 1);
+    true_rates_N1 = glbGetSignalRatePtr(2, 1); // 1Re RHC event
+    true_rates_N2 = glbGetBGRatePtr(2, 1);
+    for (int i = 0; i <= n_bins3 - 1; i++) {
+        outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
+    }
 
-    // InitOutput(MYFILE5_muirn5, "");
-    // true_rates_N0 = glbGetRuleRatePtr(2, 2);
-    // true_rates_N1 = glbGetSignalRatePtr(2, 2); // 1Re1de event
-    // true_rates_N2 = glbGetBGRatePtr(2, 2);
-    // for (int i = 0; i <= n_bins3 - 1; i++) {
-    //     AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
-    // }
+    outputFiles.InitOutput(MYFILE5_muir15, "");
+    true_rates_N0 = glbGetRuleRatePtr(2, 2);
+    true_rates_N1 = glbGetSignalRatePtr(2, 2); // 1Re1de event
+    true_rates_N2 = glbGetBGRatePtr(2, 2);
+    for (int i = 0; i <= n_bins3 - 1; i++) {
+        outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
+    }
 
     glbFreeParams(true_values);
 

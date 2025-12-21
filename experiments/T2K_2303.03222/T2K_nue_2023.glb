@@ -47,7 +47,7 @@ $sampling_min = 0.2
 $sampling_max = 3.0
 
 
-$filter_state = 0
+$filter_state = 1
 $filter_value = 0.03
 
 

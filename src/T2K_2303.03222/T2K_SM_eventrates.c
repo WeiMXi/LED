@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char MYFILE[] = "../data/prob/T2KSMprob.dat";
+char MYFILE[] = "../data/prob/T2KSMprob-2-2.dat";
 char MYFILE1[] = "../data/T2K/T2K_numu_FHC_2023.dat";
 char MYFILE1A[] = "../data/T2K/T2K_numu_FHC_data.dat";
 char MYFILE2[] = "../data/T2K/T2K_numu_RHC_2023.dat";
@@ -42,12 +42,21 @@ int main(int argc, char* argv[]) {
     /* Initialize T2K */
     InitializeT2K(&glb_experiment_list[0], &glb_num_of_exps);
     /* Define standard oscillation parameters for NO in T2K */
+    // NH
     double theta12 = asin(sqrt(0.307));   // nu-fit 6.0
     double theta13 = asin(sqrt(0.02195)); // 2303
     double theta23 = asin(sqrt(0.561));   // 2303
     double deltacp = -2.22;               // 2303
     double sdm = 7.49e-5;                 // nu-fit 5.2
     double ldm = 2.495e-3 + sdm;          // 2303
+
+    // // IH
+    // double theta12 = asin(sqrt(0.307)); // nu-fit 6.0
+    // double theta13 = asin(sqrt(0.02224));
+    // double theta23 = asin(sqrt(0.563));
+    // double deltacp = -1.44;
+    // double sdm = 7.49e-5;    // nu-fit 6.0
+    // double ldm = -2.4634e-3; // IO
 
     /* Initialize the parameter vector */
     glb_params true_values = glbAllocParams();
@@ -64,9 +73,9 @@ int main(int argc, char* argv[]) {
     glbSetRates();
 
     InitOutput(MYFILE, "");
-    for (int i = 1; i <= 1000; i++) {
-        double prob = glbConstantDensityProbability(2, 2, 1, i * 0.004, 295, 2.8);
-        AddToOutput2(i * 0.004, prob);
+    for (int i = 1; i <= 2000; i++) {
+        double prob = glbFilteredConstantDensityProbability(0, 2, 2, -1, i * 0.002);
+        AddToOutput2(i * 0.002, prob);
     }
 
     /* Obtain lists for the energy bins in the considered samples */

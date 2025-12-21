@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char MYFILE[] = "../data/prob/NOvASMprob.dat";
+char MYFILE[] = "../data/prob/NOvASMprob-2-2.dat";
 char MYFILE1[] = "../data/NOvA/NOvA_numu_2021.dat";
 char MYFILE1A[] = "../data/NOvA/NOvA_numu_data.dat";
 char MYFILE2[] = "../data/NOvA/NOvA_anumu_2021.dat";
@@ -44,12 +44,21 @@ int main(int argc, char* argv[]) {
     InitializeNOvA(&glb_experiment_list[0], &glb_num_of_exps);
 
     /* Define standard oscillation parameters for NO in NOvA */
+    // NH
     double theta12 = asin(sqrt(0.307));   // NOvA
     double theta13 = asin(sqrt(0.02195)); // NOvA
     double theta23 = asin(sqrt(0.57));    // NOvA
     double deltacp = 0.82 * M_PI;         // NOvA
     double sdm = 7.49e-5;                 // NOvA
     double ldm = 2.41e-3 + sdm;           // NOvA
+
+    // IH
+    // double theta12 = asin(sqrt(0.307));   // NOvA
+    // double theta13 = asin(sqrt(0.02224)); // NOvA
+    // double theta23 = asin(sqrt(0.56));    // NOvA
+    // double deltacp = 1.52 * M_PI;         // NOvA
+    // double sdm = 7.49e-5;                 // NOvA
+    // double ldm = -2.45e-3 + sdm;          // NOvA
 
     /* Initialize the parameter vector */
     glb_params true_values = glbAllocParams();
@@ -67,7 +76,7 @@ int main(int argc, char* argv[]) {
 
     InitOutput(MYFILE, "");
     for (int i = 1; i <= 2000; i++) {
-        double prob = glbFilteredConstantDensityProbability(0, 2, 1, 1, i * 0.002);
+        double prob = glbFilteredConstantDensityProbability(0, 2, 2, -1, i * 0.002);
         AddToOutput2(i * 0.002, prob);
     }
 
