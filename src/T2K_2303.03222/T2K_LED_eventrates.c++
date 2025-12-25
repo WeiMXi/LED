@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     double theta12 = asin(sqrt(0.307));   // nu-fit 6.0
     double theta13 = asin(sqrt(0.02195)); // 2303
     double theta23 = asin(sqrt(0.561));   // 2303
-    double deltacp = -2.22;               // 2303
+    double deltacp = -1.97;               // 2303
     double sdm = 7.49e-5;                 // nu-fit 5.2
     double ldm = 2.495e-3 + sdm;          // 2303
 

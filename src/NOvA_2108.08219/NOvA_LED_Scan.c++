@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU1R);
     glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, sdm), LED::CalProbability::GLB_MU2R);
     glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, ldm), LED::CalProbability::GLB_MU3R); // NOvA
-    LED::CalProbability::SetModesCutoff(20);
+    LED::CalProbability::SetModesCutoff(40);
 
     /* Initialize parameter vectors */
 

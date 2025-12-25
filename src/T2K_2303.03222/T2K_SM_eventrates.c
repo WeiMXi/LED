@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char MYFILE[] = "../data/prob/T2KSMprob-2-2.dat";
+char MYFILE[] = "../data/prob/T2KSMprob+2-2.dat";
 char MYFILE1[] = "../data/T2K/T2K_numu_FHC_2023.dat";
 char MYFILE1A[] = "../data/T2K/T2K_numu_FHC_data.dat";
 char MYFILE2[] = "../data/T2K/T2K_numu_RHC_2023.dat";
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     double theta12 = asin(sqrt(0.307));   // nu-fit 6.0
     double theta13 = asin(sqrt(0.02195)); // 2303
     double theta23 = asin(sqrt(0.561));   // 2303
-    double deltacp = -2.22;               // 2303
+    double deltacp = -1.97;               // 2303
     double sdm = 7.49e-5;                 // nu-fit 5.2
     double ldm = 2.495e-3 + sdm;          // 2303
 
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 
     InitOutput(MYFILE, "");
     for (int i = 1; i <= 2000; i++) {
-        double prob = glbFilteredConstantDensityProbability(0, 2, 2, -1, i * 0.002);
+        double prob = glbFilteredConstantDensityProbability(0, 2, 2, 1, i * 0.002);
         AddToOutput2(i * 0.002, prob);
     }
 
