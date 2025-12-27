@@ -95,123 +95,124 @@ inline double CalculateMuiR(const double r, const double ciR, const double mi2) 
     return std::sqrt(muiR2);
 }
 
-// inline double compute_muiR(double r, double ciR, double mi_sq) {
-//     double r_eVinv = mum_to_eVinv(r);
-//     double abs_c = fabs(ciR);
-//     double pi = std::numbers::pi;
-//     double sinh_p = sinh(pi * abs_c);
-//     double coth_p = cosh(pi * abs_c) / sinh_p;
-//     double num_base = 2 * pi * abs_c * (abs_c * coth_p - ciR);
-//     double denom_base = 2 * abs_c;
-//     double denom_c = pi * coth_p;
-//     double denom_d = pi * pi * abs_c / (sinh_p * sinh_p);
-//     double y = r_eVinv * r_eVinv * mi_sq; // (R * m_i)^2
-//     double res = y * denom_base / (num_base + denom_d * y - denom_c * y);
-//     double muiR = sqrt(res);
-//     return muiR;
-// }
 // KK masses equation
-inline double coth_eq(double y, void* params) {
-    double c1R = ((double*)params)[0];
-    double mu1R = ((double*)params)[1];
-    return sq(c1R) + M_PI * c1R * sq(mu1R) - sq(y) - y * M_PI * sq(mu1R) / tanh(M_PI * y);
+
+bool is_coth(double cR, double muR) {
+    return sq(cR) + M_PI * cR * sq(muR) - sq(muR) >= 0;
 }
 
-inline double cot_eq(double y, void* params) {
-    double c1R = ((double*)params)[0];
-    double mu1R = ((double*)params)[1];
-    return sq(c1R) + M_PI * c1R * sq(mu1R) + sq(y) - y * M_PI * sq(mu1R) / tan(M_PI * y);
+double masseq_vac(double x, void* params) {
+    double* p = (double*)params;
+    double cR = p[0];
+    double muR = p[1];
+    if (x > sq(cR) + TOLERANCE)
+        return M_PI * sq(muR) * sqrt(x - sq(cR)) / tan(M_PI * sqrt(x - sq(cR))) - x - M_PI * cR * sq(muR);
+    else if (x < sq(cR) - TOLERANCE)
+        return M_PI * sq(muR) * sqrt(sq(cR) - x) / tanh(M_PI * sqrt(sq(cR) - x)) - x - M_PI * cR * sq(muR);
+    else
+        return sq(muR) - M_PI * sq(muR) * cR - sq(cR);
 }
 
-double solver(gsl_function eq, double xl, double xr, gsl_root_fsolver* s) {
+double cot_y(double y, void* params) {
+    double* p = (double*)params;
+    double cR = p[0];
+    return masseq_vac(sq(cR) + sq(y), params);
+}
+
+double solver(double (*eqn)(double, void*), double xl, double xr, void* p) {
+    const gsl_root_fsolver_type* T = gsl_root_fsolver_brent; // Brent's method adopted
+    gsl_root_fsolver* s = gsl_root_fsolver_alloc(T);
+    gsl_function eq;
+    eq.function = eqn;
+    eq.params = p;
+
     int status;
     int iter = 0;
     int max_iter = 100;
     double root = -1.0;
-    // double epsilon = 1.0e-10;
+    double epsilon = 1.0e-12;
+    double eq_xl = eqn(xl, p);
+    double eq_xr = eqn(xr, p);
 
-    double (*eqn)(double, void*);
-    eqn = eq.function;
-    double eq_xl = eqn(xl, eq.params);
-    double eq_xr = eqn(xr, eq.params);
-
-    if (fabs(eq_xl) <= TOLERANCE)
+    if (fabs(eq_xl) <= epsilon)
         root = xl;
-    else if (fabs(eq_xr) <= TOLERANCE)
+    else if (fabs(eq_xr) <= epsilon)
         root = xr;
     else {
-        while (eqn(xl, eq.params) * eqn(xr, eq.params) > 0) {
-            printf("The bracket is being shrunk.\n");
-            xl = xl + 0.1 * TOLERANCE;
-            xr = xr - 0.1 * TOLERANCE;
-        }
-
         gsl_root_fsolver_set(s, &eq, xl, xr);
-
         do {
             iter = iter + 1;
             status = gsl_root_fsolver_iterate(s);
             root = gsl_root_fsolver_root(s);
             xl = gsl_root_fsolver_x_lower(s);
             xr = gsl_root_fsolver_x_upper(s);
-            status = gsl_root_test_interval(xl, xr, 0, TOLERANCE);
-
+            status = gsl_root_test_interval(xl, xr, 0, epsilon);
             // if (status == GSL_SUCCESS)
             // printf("converged!\n");
             // printf("%5d [%2.10f, %2.10f], %2.10f, %2.10f\n", iter, xl, xr, root, xr-xl);
         } while (status == GSL_CONTINUE && iter < max_iter);
     }
-
     return root;
 }
 
-int mmRR_each(double* mmRR, void* params, int modes) {
-    double root = -1.0;
-
-    const gsl_root_fsolver_type* T = gsl_root_fsolver_brent; // Brent's method adopted
-    gsl_root_fsolver* s = gsl_root_fsolver_alloc(T);
-    gsl_function eq;
-
-    eq.params = params;
-    double c1R = ((double*)params)[0];
-    double mu1R = ((double*)params)[1];
-
-    double xl = 0.0;
-    double xr = 0.0;
-
-    if (sq(c1R) + M_PI * c1R * sq(mu1R) - sq(mu1R) >= 0) {
-        printf("zero mode: coth\n");
-        eq.function = coth_eq;
-        xl = 1.0e-10;
-        xr = fabs(c1R);
-        root = solver(eq, xl, xr, s);
-        // printf("root = %f\n", root);
-        mmRR[0] = sq(c1R) - sq(root);
+double find_bracket_bound(double (*eq)(double, void*), double xs, double delta, double bound, void* p) {
+    double eqs = eq(xs, p);
+    double x = xs + delta;
+    if (delta > 0) {
+        while (eqs * eq(x, p) > 0) {
+            if (x > bound)
+                break;
+            else
+                x += delta;
+        }
     } else {
-        printf("zero mode: cot\n");
-        eq.function = cot_eq;
-        xl = TOLERANCE;
-        xr = 1.0 - TOLERANCE;
-        root = solver(eq, xl, xr, s);
-        // printf("root = %f\n", root);
-        mmRR[0] = sq(c1R) + sq(root);
-    }
-
-    if (modes > 1) {
-        for (int n = 1; n < modes; n++) {
-            eq.function = cot_eq;
-            xl = n + TOLERANCE;
-            xr = n + 1.0 - TOLERANCE;
-            root = solver(eq, xl, xr, s);
-            // printf("root = %f\n", root);
-            mmRR[n] = sq(c1R) + sq(root);
+        while (eqs * eq(x, p) > 0) {
+            if (x < bound)
+                break;
+            else
+                x += delta;
         }
     }
-
-    gsl_root_fsolver_free(s);
-
-    return 0;
+    // printf("find_bracket_bound: bracket found\n");
+    return x;
 }
+
+double solve_masseq_vac_coth(double* p) {
+    double xl = 0.0;
+    double cR = p[0];
+    if (fabs(masseq_vac(xl, p)) < TOLERANCE)
+        return xl;
+    else {
+        double delta = sq(cR) / 100;
+        double xr = find_bracket_bound(masseq_vac, xl, delta, sq(cR) - TOLERANCE, p);
+        return solver(masseq_vac, xl, xr, p);
+    }
+};
+
+double solve_masseq_vac_cot(int n, double* p) {
+    double cR = p[0];
+    double yl = n + TOLERANCE;
+    if (fabs(cot_y(yl, p)) < TOLERANCE)
+        return sq(cR) + sq(yl);
+    else {
+        double delta = 1.0e-2;
+        double yr = find_bracket_bound(cot_y, yl, delta, n + 1 - TOLERANCE, p);
+        return sq(cR) + sq(solver(cot_y, yl, yr, p));
+    }
+};
+
+double solve_masseq_vac(int n, double* p) {
+    double cR = p[0];
+    double muR = p[1];
+    if (n == 0) {
+        if (is_coth(cR, muR)) {
+            return solve_masseq_vac_coth(p);
+        } else {
+            return solve_masseq_vac_cot(0, p);
+        }
+    } else
+        return solve_masseq_vac_cot(n, p);
+};
 
 /**
  * @brief get the dirac mass form neutrino mass [eV] (IN C = 0!, with second-order correction)
