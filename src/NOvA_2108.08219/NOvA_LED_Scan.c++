@@ -24,7 +24,6 @@ const std::string MYFILEI1 = "../data/NOvA/NOvA_LED_Scan_IH.dat";
 LED::IO::Output outputFiles;
 
 static int global_counter = 0;
-static int nexp = 1, nexpmu = 1;
 
 static int n_params = 6;
 
@@ -38,15 +37,18 @@ double my_prior(const glb_params in, void* user_data) {
     double aux;
     double pv = 0.0;
     double fitvalue, centralvalue, inputerror;
-    double mu1R;
-    double c1R;
 
-    double th13Prior = asin(sqrt(0.022));
+    double th13Prior = 0;
+
+    if (glbGetOscParams(in, GLB_DM_31) >= 0) {
+        th13Prior = asin(sqrt(0.02195));
+    } else {
+        th13Prior = asin(sqrt(0.02219));
+    }
 
     if (glbGetProjectionFlag(p, GLB_THETA_13) == GLB_FREE) {
         fitvalue = glbGetOscParams(in, GLB_THETA_13);
-        fitvalue = square(sin(2 * fitvalue));
-        centralvalue = square(sin(2 * th13Prior)); // 0.0857;
+        centralvalue = th13Prior;
         inputerror = 0.0019;
         pv += square((centralvalue - fitvalue) / inputerror);
     }
@@ -58,26 +60,6 @@ double my_prior(const glb_params in, void* user_data) {
 void set_osc_params_zero(glb_params in_params) {
     for (int i = 0; i < n_params; i++)
         glbSetOscParams(in_params, 0.0, i);
-}
-
-///////////////////////////////////////////////
-///		Define projection           ///
-//////////////////////////////////////////////
-
-/* Set all proj flags to GLB_FIXED */
-void set_proj_all_fixed(glb_projection in_proje) {
-    for (int i = 0; i < n_params; i++)
-        glbSetProjectionFlag(in_proje, GLB_FIXED, i);
-
-    glbSetDensityProjectionFlag(in_proje, GLB_FIXED, GLB_ALL);
-}
-
-/* Set up a projection on thet23-deltaCP plane */
-void set_proj_SM_TH23_DCP_2D(glb_projection in_proje) {
-    // set_proj_all_fixed(in_proje);
-    /* THETA_12, THETA_13, THETA_23, DELTA_CP,  DM_21,     DM_31 */
-    glbDefineProjection(in_proje, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
-    glbSetDensityProjectionFlag(in_proje, GLB_FIXED, GLB_ALL);
 }
 
 ////////////////////////////////////////////////////////////
@@ -117,11 +99,13 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, 10, LED::CalProbability::GLB_C1R);
     glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C2R);
     glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C3R);
-    glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, sdm), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, ldm), LED::CalProbability::GLB_MU3R); // NOvA
-    LED::CalProbability::SetModesCutoff(40);
+    glbSetOscParams(central_values, 0.1, LED::CalProbability::GLB_MU1R);
 
+    double paramsNH[2] = {1, 0.1};                                                                                                                        // c1R,mu1R
+    double mLightest2 = LED::CalProbability::solve_masseq_vac(0, paramsNH) / LED::CalProbability::mum_to_eVinv(1) / LED::CalProbability::mum_to_eVinv(1); // mmRR/RR
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, sdm + mLightest2), LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, ldm + mLightest2), LED::CalProbability::GLB_MU3R); // NOvA
+    LED::CalProbability::SetModesCutoff(40);
     /* Initialize parameter vectors */
 
     glb_params test_values = glbAllocParams();
@@ -132,7 +116,7 @@ int main(int argc, char* argv[]) {
     glbDefineParams(central_values, theta12, theta13, theta23, deltacp, sdm, ldm);
     glbSetDensityParams(central_values, 1.0, GLB_ALL);
 
-    /* Set prior values (no priors, only 5% uncertainty for matter density) */
+    /* Set prior values */
     set_osc_params_zero(input_errors);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_R);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C1R);
@@ -153,7 +137,8 @@ int main(int argc, char* argv[]) {
 
     /* Set projection as previously defined */
     glb_projection my_projection = glbAllocProjection();
-    set_proj_SM_TH23_DCP_2D(my_projection); /* SM fit onto TH23-DCP plane */
+    glbDefineProjection(my_projection, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
+
     glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_R);
     glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C1R);
     glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C2R);
@@ -161,7 +146,7 @@ int main(int argc, char* argv[]) {
     glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU1R);
     glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU2R);
     glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU3R);
-
+    glbSetDensityProjectionFlag(my_projection, GLB_FIXED, GLB_ALL);
     glbSetProjection(my_projection);
 
     //////////////////////////////////////////////
@@ -170,9 +155,8 @@ int main(int argc, char* argv[]) {
 
     /* Initiate a parameter vector for the scan */
     glbCopyParams(central_values, test_values);
-
-    double xmin = 4;
-    double xmax = 10;
+    double xmin = 2.5;
+    double xmax = 8;
     int xsteps = 40;
     double ymin = 0.1;
     double ymax = 1.5;
@@ -214,19 +198,18 @@ int main(int argc, char* argv[]) {
         theAbsCR = local_x;
         themu1R = local_y;
 
-        // double hc1 = theAbsCR * theAbsCR + (std::numbers::pi * theAbsCR - 1) * themu1R;
-        // double h0 = LED::CalProbability::hi_zero(theAbsCR, themu1R);
-        // std::cout << hc1 << " " << h0 << std::endl;
-
         glbSetOscParams(test_values, theR, LED::CalProbability::GLB_R);
         glbSetOscParams(test_values, theAbsCR, LED::CalProbability::GLB_C1R);
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C2R);
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C3R);
 
         glbSetOscParams(test_values, themu1R, LED::CalProbability::GLB_MU1R);
-        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, sdm), LED::CalProbability::GLB_MU2R);
-        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, ldm), LED::CalProbability::GLB_MU3R);
-        // std::cout << sqrt(LED::CalProbability::CalLightestm2(theR, theAbsCR, themu1R)) * LED::CalProbability::mum_to_eVinv(theR) << std::endl;
+        double theParams[2] = {theAbsCR, themu1R}; // c1R,mu1R
+        mLightest2 = LED::CalProbability::solve_masseq_vac(0, theParams) / LED::CalProbability::mum_to_eVinv(theR) / LED::CalProbability::mum_to_eVinv(theR);
+
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, sdm + mLightest2), LED::CalProbability::GLB_MU2R);
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, ldm + mLightest2), LED::CalProbability::GLB_MU3R);
+
         res = glbChiNP(test_values, minimum, GLB_ALL);
 
         printf("%f %f %f\n", theAbsCR, themu1R, res);
@@ -253,14 +236,13 @@ int main(int argc, char* argv[]) {
     if (rank == 0) {
         all_res = (double*)malloc(total_tasks * sizeof(double));
     }
-    // 先gather num_tasks到rank0
+
     int* all_num_tasks = NULL;
     if (rank == 0) {
         all_num_tasks = (int*)malloc(size * sizeof(int));
     }
     MPI_Gather(&num_tasks, 1, MPI_INT, all_num_tasks, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    // 然后displs和recvcounts for irregular gather
     int *displs = NULL, *recvcounts = NULL;
     if (rank == 0) {
         displs = (int*)malloc(size * sizeof(int));
@@ -310,9 +292,11 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C2R);
     glbSetOscParams(central_values, 10, LED::CalProbability::GLB_C3R);
 
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.45e-3 - sdm), LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.45e-3), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU3R); // NOvA
+    double paramsIH[2] = {1, 0.1};                                                                                                                 // c3R,mu3R
+    mLightest2 = LED::CalProbability::solve_masseq_vac(0, paramsIH) / LED::CalProbability::mum_to_eVinv(1) / LED::CalProbability::mum_to_eVinv(1); // mmRR/RR
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.45e-3 - sdm + mLightest2), LED::CalProbability::GLB_MU1R);
+    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.45e-3 + mLightest2), LED::CalProbability::GLB_MU2R);
+    glbSetOscParams(central_values, 0.1, LED::CalProbability::GLB_MU3R); // NOvA
     glbSetOscillationParameters(central_values);
     glbSetRates();
 
@@ -344,10 +328,12 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C2R);
         glbSetOscParams(test_values, theAbsCR, LED::CalProbability::GLB_C3R);
 
-        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, 2.45e-3 - 7.49e-5), LED::CalProbability::GLB_MU1R);
-        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, 2.45e-3), LED::CalProbability::GLB_MU2R);
+        double theParams[2] = {theAbsCR, themu3R}; // c3R,mu3R
+        mLightest2 = LED::CalProbability::solve_masseq_vac(0, theParams) / LED::CalProbability::mum_to_eVinv(theR) / LED::CalProbability::mum_to_eVinv(theR);
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, 2.45e-3 - sdm + mLightest2), LED::CalProbability::GLB_MU1R);
+        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, 2.45e-3 + mLightest2), LED::CalProbability::GLB_MU2R);
         glbSetOscParams(test_values, themu3R, LED::CalProbability::GLB_MU3R);
-        // std::cout << sqrt(LED::CalProbability::CalLightestm2(10, theAbsCR, themu1R)) << std::endl;
+
         res = glbChiNP(test_values, minimum, GLB_ALL);
 
         printf("%f %f %f \n", theAbsCR, themu3R, res);
@@ -373,14 +359,13 @@ int main(int argc, char* argv[]) {
     if (rank == 0) {
         all_res = (double*)malloc(total_tasks * sizeof(double));
     }
-    // 先gather num_tasks到rank0
+
     all_num_tasks = NULL;
     if (rank == 0) {
         all_num_tasks = (int*)malloc(size * sizeof(int));
     }
     MPI_Gather(&num_tasks, 1, MPI_INT, all_num_tasks, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    // 然后displs和recvcounts for irregular gather
     displs = NULL,
     recvcounts = NULL;
     if (rank == 0) {
