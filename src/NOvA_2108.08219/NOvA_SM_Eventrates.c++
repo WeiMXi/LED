@@ -10,33 +10,34 @@
  *   Step 4: Events after data-driven corrections
  */
 
-#include "NOvA_setup.h"
-#include "myio.h" /* my input-output routines */
+#include "NOvA_Setup.h"
+#include "ledlib/IO/IO.h++" /* my input-output routines */
 
 #include <glb_smear.h>
 #include <glb_types.h>
 #include <globes/globes.h> /* GLoBES library */
 #include <gsl/gsl_sf_erf.h>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-char MYFILE[] = "../data/prob/NOvASMprob-2-2.dat";
-char MYFILE1[] = "../data/NOvA/NOvA_numu_2021.dat";
-char MYFILE1A[] = "../data/NOvA/NOvA_numu_data.dat";
-char MYFILE2[] = "../data/NOvA/NOvA_anumu_2021.dat";
-char MYFILE2A[] = "../data/NOvA/NOvA_anumu_data.dat";
+const std::string MYFILE = "../data/prob/NOvASMprob-2-2.dat";
+const std::string MYFILE1 = "../data/NOvA/NOvA_numu_2021.dat";
+const std::string MYFILE1A = "../data/NOvA/NOvA_numu_data.dat";
+const std::string MYFILE2 = "../data/NOvA/NOvA_anumu_2021.dat";
+const std::string MYFILE2A = "../data/NOvA/NOvA_anumu_data.dat";
 
-char MYFILE3[] = "../data/NOvA/NOvA_nue_LCNN_2021.dat";
-char MYFILE3A[] = "../data/NOvA/NOvA_nue_LCNN_data.dat";
-char MYFILE4[] = "../data/NOvA/NOvA_nue_HCNN_2021.dat";
-char MYFILE4A[] = "../data/NOvA/NOvA_nue_HCNN_data.dat";
+const std::string MYFILE3 = "../data/NOvA/NOvA_nue_LCNN_2021.dat";
+const std::string MYFILE3A = "../data/NOvA/NOvA_nue_LCNN_data.dat";
+const std::string MYFILE4 = "../data/NOvA/NOvA_nue_HCNN_2021.dat";
+const std::string MYFILE4A = "../data/NOvA/NOvA_nue_HCNN_data.dat";
 
-char MYFILE5[] = "../data/NOvA/NOvA_anue_LCNN_2021.dat";
-char MYFILE5A[] = "../data/NOvA/NOvA_anue_LCNN_data.dat";
-char MYFILE6[] = "../data/NOvA/NOvA_anue_HCNN_2021.dat";
-char MYFILE6A[] = "../data/NOvA/NOvA_anue_HCNN_data.dat";
-
+const std::string MYFILE5 = "../data/NOvA/NOvA_anue_LCNN_2021.dat";
+const std::string MYFILE5A = "../data/NOvA/NOvA_anue_LCNN_data.dat";
+const std::string MYFILE6 = "../data/NOvA/NOvA_anue_HCNN_2021.dat";
+const std::string MYFILE6A = "../data/NOvA/NOvA_anue_HCNN_data.dat";
+LED::IO::Output outputFiles;
 int main(int argc, char* argv[]) {
     /* Initialize libglobes */
     glbInit(argv[0]);
@@ -74,10 +75,10 @@ int main(int argc, char* argv[]) {
     glbSetOscillationParameters(true_values);
     glbSetRates();
 
-    InitOutput(MYFILE, "");
+    outputFiles.InitOutput(MYFILE, "");
     for (int i = 1; i <= 2000; i++) {
         double prob = glbFilteredConstantDensityProbability(0, 2, 2, -1, i * 0.002);
-        AddToOutput2(i * 0.002, prob);
+        outputFiles.AddToOutput2(i * 0.002, prob);
     }
 
     /* Obtain lists for the energy bins in the considered samples */
@@ -99,64 +100,64 @@ int main(int argc, char* argv[]) {
     nue_bin_widths = glbGetBinSizeListPtr(1);
 
     /* Compute event rate spectra for the neutrino muon-like event */
-    InitOutput(MYFILE1, "");
+    outputFiles.InitOutput(MYFILE1, "");
     true_rates_N0 = glbGetRuleRatePtr(0, 0);
     true_rates_N1 = glbGetSignalRatePtr(0, 0);
     true_rates_N2 = glbGetBGRatePtr(0, 0);
 
     for (int i = 0; i <= n_bins1 - 1; i++) {
-        AddToOutput(numu_bin_centers_E[i], (true_rates_N1[i] + true_rates_N2[i]) / numu_bin_widths[i] * 0.1, numu_bin_widths[i]);
+        outputFiles.AddToOutput(numu_bin_centers_E[i], (true_rates_N1[i] + true_rates_N2[i]) / numu_bin_widths[i] * 0.1, numu_bin_widths[i]);
     }
-    InitOutput(MYFILE1A, "");
-    for (int i = 0; i <= n_bins1 - 1; i++) AddToOutput2(numu_bin_centers_E[i], true_rates_N0[i]);
+    outputFiles.InitOutput(MYFILE1A, "");
+    for (int i = 0; i <= n_bins1 - 1; i++) outputFiles.AddToOutput2(numu_bin_centers_E[i], true_rates_N0[i]);
 
     /* Compute event rate spectra for the antineutrino muon-like event */
-    InitOutput(MYFILE2, "");
+    outputFiles.InitOutput(MYFILE2, "");
     true_rates_N0 = glbGetRuleRatePtr(0, 1);
     true_rates_N1 = glbGetSignalRatePtr(0, 1);
     true_rates_N2 = glbGetBGRatePtr(0, 1);
 
     for (int i = 0; i <= n_bins1 - 1; i++) {
-        AddToOutput(numubar_bin_centers_E[i], (true_rates_N1[i] + true_rates_N2[i]) / numu_bin_widths[i] * 0.1, numubar_bin_widths[i]);
+        outputFiles.AddToOutput(numubar_bin_centers_E[i], (true_rates_N1[i] + true_rates_N2[i]) / numu_bin_widths[i] * 0.1, numubar_bin_widths[i]);
     }
-    InitOutput(MYFILE2A, "");
-    for (int i = 0; i <= n_bins1 - 1; i++) AddToOutput2(numubar_bin_centers_E[i], true_rates_N0[i]);
+    outputFiles.InitOutput(MYFILE2A, "");
+    for (int i = 0; i <= n_bins1 - 1; i++) outputFiles.AddToOutput2(numubar_bin_centers_E[i], true_rates_N0[i]);
 
     /* Compute event rate spectra for the neutrino electron-like samples with low CNN */
-    InitOutput(MYFILE3, "");
+    outputFiles.InitOutput(MYFILE3, "");
     true_rates_N0 = glbGetRuleRatePtr(1, 0);
     true_rates_N1 = glbGetSignalRatePtr(1, 0);
     true_rates_N2 = glbGetBGRatePtr(1, 0);
 
     for (int i = 0; i <= n_bins2 - 1; i++) {
-        AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
+        outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
     }
-    InitOutput(MYFILE3A, "");
-    for (int i = 0; i <= n_bins2 - 1; i++) AddToOutput2(nue_bin_centers_E[i], true_rates_N0[i]);
+    outputFiles.InitOutput(MYFILE3A, "");
+    for (int i = 0; i <= n_bins2 - 1; i++) outputFiles.AddToOutput2(nue_bin_centers_E[i], true_rates_N0[i]);
 
     /* Compute event rate spectra for the neutrino electron-like samples with high CNN */
-    InitOutput(MYFILE4, "");
+    outputFiles.InitOutput(MYFILE4, "");
     true_rates_N0 = glbGetRuleRatePtr(1, 1);
     true_rates_N1 = glbGetSignalRatePtr(1, 1);
     true_rates_N2 = glbGetBGRatePtr(1, 1);
 
     for (int i = 0; i <= n_bins2 - 1; i++) {
-        AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
+        outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
     }
-    InitOutput(MYFILE4A, "");
-    for (int i = 0; i <= n_bins2 - 1; i++) AddToOutput2(nue_bin_centers_E[i], true_rates_N0[i]);
+    outputFiles.InitOutput(MYFILE4A, "");
+    for (int i = 0; i <= n_bins2 - 1; i++) outputFiles.AddToOutput2(nue_bin_centers_E[i], true_rates_N0[i]);
 
     /* Compute event rate spectra for the neutrino antielectron-like samples with low CNN */
-    InitOutput(MYFILE5, "");
+    outputFiles.InitOutput(MYFILE5, "");
     true_rates_N0 = glbGetRuleRatePtr(1, 2);
     true_rates_N1 = glbGetSignalRatePtr(1, 2);
     true_rates_N2 = glbGetBGRatePtr(1, 2);
 
     for (int i = 0; i <= n_bins2 - 1; i++) {
-        AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
+        outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
     }
-    InitOutput(MYFILE5A, "");
-    for (int i = 0; i <= n_bins2 - 1; i++) AddToOutput2(nue_bin_centers_E[i], true_rates_N0[i]);
+    outputFiles.InitOutput(MYFILE5A, "");
+    for (int i = 0; i <= n_bins2 - 1; i++) outputFiles.AddToOutput2(nue_bin_centers_E[i], true_rates_N0[i]);
 
     /* Compute event rate spectra for the neutrino electron-like samples with high CNN */
     double NOvA_anue_HCNN_MC[6] = {
@@ -166,16 +167,16 @@ int main(int argc, char* argv[]) {
         2.40363,
         1.06121,
         0.74725};
-    InitOutput(MYFILE6, "");
+    outputFiles.InitOutput(MYFILE6, "");
     true_rates_N0 = glbGetRuleRatePtr(1, 3);
     true_rates_N1 = glbGetSignalRatePtr(1, 3);
     true_rates_N2 = glbGetBGRatePtr(1, 3);
 
     for (int i = 0; i <= n_bins2 - 1; i++) {
-        AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
+        outputFiles.AddToOutput(nue_bin_centers_E[i], true_rates_N1[i] + true_rates_N2[i], nue_bin_widths[i]);
     }
-    InitOutput(MYFILE6A, "");
-    for (int i = 0; i <= n_bins2 - 1; i++) AddToOutput2(nue_bin_centers_E[i], true_rates_N0[i]);
+    outputFiles.InitOutput(MYFILE6A, "");
+    for (int i = 0; i <= n_bins2 - 1; i++) outputFiles.AddToOutput2(nue_bin_centers_E[i], true_rates_N0[i]);
 
     glbFreeParams(true_values);
 

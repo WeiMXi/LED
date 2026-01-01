@@ -1,5 +1,5 @@
-#ifndef T2Ksetup_h
-#define T2Ksetup_h
+#ifndef T2KSetup_h
+#define T2KSetup_h
 
 #include "T2K_Sys.h"
 

@@ -10,20 +10,18 @@
 #include <stdlib.h>
 #include <string.h>
 #define atoa(x) #x
+
 extern "C" {
-#include "NOvA_setup.h"
+#include "NOvA_Setup.h"
 }
 #include "ledlib/Engine/ProbabilityEngine.h++"
 #include "ledlib/IO/IO.h++" /* my input-output routines */
 
 #include <globes/globes.h> // GLoBES library
 
-const std::string MYFILEN1 = "../data/NOvA/NOvA_fit_4Dfinite_normal.dat";
-const std::string MYFILEI1 = "../data/NOvA/NOvA_fit_4Dfinite_inverted.dat";
+char MYFILEN1[] = "../data/NOvA/NOvA_fit_data_normal.dat";
+char MYFILEI1[] = "../data/NOvA/NOvA_fit_data_inverted.dat";
 LED::IO::Output outputFiles;
-
-static int global_counter = 0;
-static int nexp = 1, nexpmu = 1;
 
 static int n_params = 6;
 
@@ -43,8 +41,8 @@ double my_prior(const glb_params in, void* user_data) {
     if (glbGetProjectionFlag(p, GLB_THETA_13) == GLB_FREE) {
         fitvalue = glbGetOscParams(in, GLB_THETA_13);
         fitvalue = square(sin(2 * fitvalue));
-        centralvalue = square(sin(2 * th13Prior)); // 0.0857;
-        inputerror = 0.0046;
+        centralvalue = square(sin(2 * th13Prior));
+        inputerror = 0.0019;
         pv += square((centralvalue - fitvalue) / inputerror);
     }
     if (glbGetProjectionFlag(p, GLB_DELTA_CP) == GLB_FREE) {
@@ -54,22 +52,26 @@ double my_prior(const glb_params in, void* user_data) {
         pv += square((centralvalue - fitvalue) / inputerror);
     }
 
-    if (glbGetProjectionFlag(p, LED::CalProbability::GLB_MU2R) == GLB_FREE) {
-        fitvalue = glbGetOscParams(in, LED::CalProbability::GLB_MU2R);
-        centralvalue = 0.0275 * sqrt(10);
-        inputerror = 0.02;
-        pv += square((centralvalue - fitvalue) / inputerror);
-    }
-
-    if (glbGetProjectionFlag(p, LED::CalProbability::GLB_MU3R) == GLB_FREE) {
-        fitvalue = glbGetOscParams(in, LED::CalProbability::GLB_MU3R);
-        centralvalue = 0.1598 * sqrt(10);
-        inputerror = 0.03;
-        pv += square((centralvalue - fitvalue) / inputerror);
-    }
-
     glbFreeProjection(p);
     return pv;
+}
+
+void percent_bar(double* check_bar, double DeltaP, int current, double print_percent) {
+    *check_bar = *check_bar + DeltaP;
+    int aux_percent;
+    if (*check_bar > print_percent) {
+        printf("#");
+
+        printf("](%i %%)", current);
+        if (current < 10)
+            printf("\b\b\b\b\b\b");
+        else if (current <= 100)
+            printf("\b\b\b\b\b\b\b");
+        else
+            printf("\b\b\b\b\b\b\b\b");
+        fflush(stdout);
+        *check_bar = 0.0;
+    }
 }
 
 void set_osc_params_zero(glb_params in_params) {
@@ -93,7 +95,7 @@ void set_proj_all_fixed(glb_projection in_proje) {
 void set_proj_SM_TH23_DCP_2D(glb_projection in_proje) {
     // set_proj_all_fixed(in_proje);
     /* THETA_12, THETA_13, THETA_23, DELTA_CP,  DM_21,     DM_31 */
-    glbDefineProjection(in_proje, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
+    glbDefineProjection(in_proje, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FREE);
     glbSetDensityProjectionFlag(in_proje, GLB_FIXED, GLB_ALL);
 }
 
@@ -108,11 +110,6 @@ int main(int argc, char* argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     /* Initialize libglobes */
     glbInit(argv[0]);
-    glbRegisterProbabilityEngine(13, /*Number of parameters*/
-                                 &LED::CalProbability::my_probability_matrix,
-                                 &LED::CalProbability::my_set_oscillation_parameters,
-                                 &LED::CalProbability::my_get_oscillation_parameters,
-                                 NULL);
 
     /* Initialize experiments */
     InitializeNOvA(&glb_experiment_list[0], &glb_num_of_exps);
@@ -127,21 +124,11 @@ int main(int argc, char* argv[]) {
     double deltacp = 0.82 * M_PI;
     double sdm = 7.49e-5;
     double ldm = 2.41e-3 + sdm;
-    glb_params central_values = glbAllocParams();
-    glb_params input_errors = glbAllocParams();
-
-    glbSetOscParams(central_values, 10, LED::CalProbability::GLB_R);
-    glbSetOscParams(central_values, 4, LED::CalProbability::GLB_C1R);
-    glbSetOscParams(central_values, -4, LED::CalProbability::GLB_C2R);
-    glbSetOscParams(central_values, -4, LED::CalProbability::GLB_C3R);
-    glbSetOscParams(central_values, 0.001, LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(10, -4, sdm), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(10, -4, ldm), LED::CalProbability::GLB_MU3R); // NOvA
-    LED::CalProbability::SetModesCutoff(10);
 
     /* Initialize parameter vectors */
-
+    glb_params central_values = glbAllocParams();
     glb_params test_values = glbAllocParams();
+    glb_params input_errors = glbAllocParams();
     glb_params minimum = glbAllocParams();
 
     /* Set central values */
@@ -149,14 +136,8 @@ int main(int argc, char* argv[]) {
     glbDefineParams(central_values, theta12, theta13, theta23, deltacp, sdm, ldm);
     glbSetDensityParams(central_values, 1.0, GLB_ALL);
 
+    /* Set prior values (no priors, only 5% uncertainty for matter density) */
     set_osc_params_zero(input_errors);
-    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_R);
-    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C1R);
-    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C2R);
-    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C3R);
-    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(input_errors, 0.01, LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(input_errors, 0.02, LED::CalProbability::GLB_MU3R);
     glbSetDensityParams(input_errors, 0.05, GLB_ALL);
 
     /* Insert central values and input errors into GLoBES */
@@ -170,13 +151,6 @@ int main(int argc, char* argv[]) {
     /* Set projection as previously defined */
     glb_projection my_projection = glbAllocProjection();
     set_proj_SM_TH23_DCP_2D(my_projection); /* SM fit onto TH23-DCP plane */
-    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_R);
-    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C1R);
-    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C2R);
-    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C3R);
-    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU1R);
-    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU2R);
-    glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_MU3R);
 
     glbSetProjection(my_projection);
 
@@ -232,10 +206,9 @@ int main(int argc, char* argv[]) {
         thedeltacp = local_y;
         glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
         glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
+        // glbSetRates();
         /* Compute Chi^2 for all loaded experiments and all rules */
-        // res = glbChiNP(test_values, minimum, GLB_ALL);
-        res = 1;
-        printf("%f %f %f\n", local_x, local_y, res);
+        res = glbChiNP(test_values, minimum, GLB_ALL);
         local_res[t] = res;
 
         /* **本地更新min** */
@@ -249,7 +222,7 @@ int main(int argc, char* argv[]) {
 
         int local_completed = t + 1;
         int global_completed = local_completed * size;
-        double tasks_per_sec = (double)global_completed / local_elapsed;
+        double tasks_per_sec = (double)local_completed / local_elapsed;
         int remaining_tasks = total_tasks - global_completed;
         double remaining_time = remaining_tasks / tasks_per_sec / size;
 
@@ -289,46 +262,39 @@ int main(int argc, char* argv[]) {
     }
     MPI_Gatherv(local_res, num_tasks, MPI_DOUBLE, all_res, recvcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    // if (rank == 0) {
-    //     outputFiles.InitOutput(MYFILEN1, "");
-    //     double chi_min = global_chi_min;
-    //     double theta23_min = 0.0;
-    //     double deltacp_min = 0.0;
-    //     int z = 0;
-    //     for (int idx = 0; idx < total_tasks; idx++) {
-    //         int x_idx = idx / ysteps;
-    //         int y_idx = idx % ysteps;
-    //         double x_out = xmin + x_idx * dx;
-    //         double y_out = ymin + y_idx * dy;
-    //         res = all_res[idx];
-    //         outputFiles.AddToOutput(x_out, y_out, res);
-    //         if (res < chi_min) {
-    //             chi_min = res;
-    //             theta23_min = asin(sqrt(x_out));
-    //             deltacp_min = y_out;
-    //         }
-    //         z++;
-    //         if (z % 100 == 0) {
-    //             printf("%d\n", z);
-    //         }
-    //     }
-    // }
+    if (rank == 0) {
+        outputFiles.InitOutput(MYFILEN1, "");
+        double chi_min = global_chi_min;
+        double theta23_min = 0.0;
+        double deltacp_min = 0.0;
+        int z = 0;
+        for (int idx = 0; idx < total_tasks; idx++) {
+            int x_idx = idx / ysteps;
+            int y_idx = idx % ysteps;
+            double x_out = xmin + x_idx * dx;
+            double y_out = ymin + y_idx * dy;
+            res = all_res[idx];
+            outputFiles.AddToOutput(x_out, y_out, res);
+            if (res < chi_min) {
+                chi_min = res;
+                theta23_min = asin(sqrt(x_out));
+                deltacp_min = y_out;
+            }
+            z++;
+            if (z % 100 == 0) {
+                printf("%d\n", z);
+            }
+        }
+    }
 
     // Flip hierarchy
     glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
     glbSetOscParams(central_values, 1.52 * M_PI, GLB_DELTA_CP);
     glbSetOscParams(central_values, -2.45e-3 + sdm, GLB_DM_31); // DM31 = DM32 + DM21
-
-    glbSetOscParams(test_values, 10, LED::CalProbability::GLB_R);
-    glbSetOscParams(test_values, -4, LED::CalProbability::GLB_C1R);
-    glbSetOscParams(test_values, -4, LED::CalProbability::GLB_C2R);
-    glbSetOscParams(test_values, 4, LED::CalProbability::GLB_C3R);
-
-    glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(10, -4, 2.45e-3 - 7.49e-5), LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(10, -4, 2.45e-3), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(test_values, 0.1, LED::CalProbability::GLB_MU3R);
     glbSetOscillationParameters(central_values);
     glbSetRates();
+    set_proj_SM_TH23_DCP_2D(my_projection);
+    glbSetProjection(my_projection);
 
     glbCopyParams(central_values, test_values);
     start_time = MPI_Wtime();
@@ -349,9 +315,9 @@ int main(int argc, char* argv[]) {
         thedeltacp = local_y;
         glbSetOscParams(test_values, thetheta23, GLB_THETA_23);
         glbSetOscParams(test_values, thedeltacp, GLB_DELTA_CP);
+        // glbSetRates();
         /* Compute Chi^2 for all loaded experiments and all rules */
         res = glbChiNP(test_values, minimum, GLB_ALL);
-        printf("%f %f %f\n", local_x, local_y, res);
         local_res[t] = res;
 
         /* **本地更新min** */
