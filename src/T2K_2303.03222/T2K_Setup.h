@@ -1,7 +1,7 @@
 #ifndef T2Ksetup_h
 #define T2Ksetup_h
 
-#include "sys_T2K.h"
+#include "T2K_Sys.h"
 
 #include <glb_smear.h>
 #include <glb_types.h>

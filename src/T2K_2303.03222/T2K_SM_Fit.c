@@ -12,7 +12,7 @@
 
 #include "myio.h" /* my input-output routines */
 
-#include "T2K_setup.h"
+#include "T2K_Setup.h"
 
 #include <glb_smear.h>
 #include <glb_types.h>

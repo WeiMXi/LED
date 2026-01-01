@@ -10,9 +10,8 @@
  *   Step 4: Events after data-driven corrections
  */
 #include "myio.h" /* my input-output routines */
-#include "nu5d_mat_osc.h"
 
-#include "T2K_setup.h"
+#include "T2K_Setup.h"
 
 #include <glb_smear.h>
 #include <glb_types.h>

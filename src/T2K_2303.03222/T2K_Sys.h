@@ -1,5 +1,5 @@
-#ifndef sys_T2K_h
-#define sys_T2K_h
+#ifndef T2K_SYS_H
+#define T2K_SYS_H
 
 #include <globes/globes.h> // GLoBES library
 #include <math.h>

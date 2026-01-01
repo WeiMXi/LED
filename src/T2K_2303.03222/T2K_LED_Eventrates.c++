@@ -10,7 +10,7 @@
  *   Step 4: Events after data-driven corrections
  */
 extern "C" {
-#include "T2K_setup.h"
+#include "T2K_Setup.h"
 }
 #include "ledlib/Engine/ProbabilityEngine.h++"
 #include "ledlib/IO/IO.h++" /* my input-output routines */

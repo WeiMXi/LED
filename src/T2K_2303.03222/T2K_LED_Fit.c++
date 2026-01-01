@@ -14,7 +14,7 @@
 #include "ledlib/Engine/ProbabilityEngine.h++"
 #include "ledlib/IO/IO.h++" /* my input-output routines */
 extern "C" {
-#include "T2K_setup.h"
+#include "T2K_Setup.h"
 }
 #include <glb_smear.h>
 #include <glb_types.h>
@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
 
     glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.463e-3), LED::CalProbability::GLB_MU1R);
     glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.463e-3 + sdm), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(central_values, 0.01, LED::CalProbability::GLB_MU3R);
+    glbSetOscParams(central_values, 0.1, LED::CalProbability::GLB_MU3R);
     glbSetOscillationParameters(central_values);
     glbSetRates();
 
