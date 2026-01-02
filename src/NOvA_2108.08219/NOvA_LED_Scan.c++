@@ -23,8 +23,6 @@ const std::string MYFILEN1 = "../data/NOvA/NOvA_LED_Scan_NH.dat";
 const std::string MYFILEI1 = "../data/NOvA/NOvA_LED_Scan_IH.dat";
 LED::IO::Output outputFiles;
 
-static int global_counter = 0;
-
 static int n_params = 6;
 
 double square(double x) {
@@ -117,7 +115,13 @@ int main(int argc, char* argv[]) {
     glbSetDensityParams(central_values, 1.0, GLB_ALL);
 
     /* Set prior values */
-    set_osc_params_zero(input_errors);
+    double theta12_error = 0.72 * M_PI / 180;
+    double theta13_error = 1.9e-3;
+    double theta23_error = 0.8* M_PI / 180;
+    double deltacp_error = 20 * M_PI / 180;
+    double sdm_error = 0.21e-5;
+    double ldm_error = 0.024e-3;
+    glbDefineParams(input_errors, theta12_error, theta13_error, theta23_error, deltacp_error, sdm_error, ldm_error);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_R);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C1R);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C2R);

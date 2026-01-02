@@ -86,13 +86,13 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, ldm + mLightest2), LED::CalProbability::GLB_MU3R); // T2K
     LED::CalProbability::SetModesCutoff(40);
 
-    /*Obtained from T2K paper 2303.03222*/
-    double theta12_error = 0.75 * M_PI / 180;
+    /*Obtained from nufit 6.0*/
+    double theta12_error = 0.72 * M_PI / 180;
     double theta13_error = 1.9e-3;
-    double theta23_error = 1.1 * M_PI / 180;
-    double deltacp_error = 1.25;
-    double sdm_error = 0.19e-5;
-    double ldm_error = 0.058e-3;
+    double theta23_error = 0.8 * M_PI / 180;
+    double deltacp_error = 20 * M_PI / 180;
+    double sdm_error = 0.21e-5;
+    double ldm_error = 0.024e-3;
 
     glb_params input_errors = glbAllocParams();
     glbDefineParams(input_errors, theta12_error, theta13_error, theta23_error, deltacp_error, sdm_error, ldm_error);
