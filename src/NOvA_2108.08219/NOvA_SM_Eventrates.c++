@@ -33,21 +33,12 @@ int main(int argc, char* argv[]) {
     InitializeNOvA(&glb_experiment_list[0], &glb_num_of_exps);
 
     /* Define standard oscillation parameters for NO in NOvA */
-    // NH
-    double theta12 = asin(sqrt(0.307));   // NOvA
-    double theta13 = asin(sqrt(0.02195)); // NOvA
-    double theta23 = asin(sqrt(0.57));    // NOvA
-    double deltacp = 0.82 * M_PI;         // NOvA
-    double sdm = 7.49e-5;                 // NOvA
-    double ldm = 2.41e-3 + sdm;           // NOvA
-
-    // IH
-    // double theta12 = asin(sqrt(0.307));   // NOvA
-    // double theta13 = asin(sqrt(0.02224)); // NOvA
-    // double theta23 = asin(sqrt(0.56));    // NOvA
-    // double deltacp = 1.52 * M_PI;         // NOvA
-    // double sdm = 7.49e-5;                 // NOvA
-    // double ldm = -2.45e-3 + sdm;          // NOvA
+    double theta12 = asin(sqrt(0.307));
+    double theta13 = asin(sqrt(0.02195));
+    double theta23 = asin(sqrt(0.57));
+    double deltacp = 0.82 * M_PI;
+    double sdm = 7.49e-5;
+    double ldm = 2.41e-3 + sdm;
 
     /* Initialize the parameter vector */
     glb_params true_values = glbAllocParams();
@@ -148,13 +139,6 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i <= n_bins2 - 1; i++) outputFiles.AddToOutput2(nue_bin_centers_E[i], true_rates_N0[i]);
 
     /* Compute event rate spectra for the neutrino electron-like samples with high CNN */
-    double NOvA_anue_HCNN_MC[6] = {
-        1.48931,
-        7.96550,
-        6.62295,
-        2.40363,
-        1.06121,
-        0.74725};
     outputFiles.InitOutput(MYFILE6, "");
     true_rates_N0 = glbGetRuleRatePtr(1, 3);
     true_rates_N1 = glbGetSignalRatePtr(1, 3);

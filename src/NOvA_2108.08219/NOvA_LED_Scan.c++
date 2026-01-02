@@ -49,11 +49,6 @@ double my_prior(const glb_params in, void* user_data) {
     return pv;
 }
 
-void set_osc_params_zero(glb_params in_params) {
-    for (int i = 0; i < n_params; i++)
-        glbSetOscParams(in_params, 0.0, i);
-}
-
 ////////////////////////////////////////////////////////////
 ///		       MAIN PROGRAM 		           //
 ///////////////////////////////////////////////////////////
@@ -104,14 +99,13 @@ int main(int argc, char* argv[]) {
     glb_params minimum = glbAllocParams();
 
     /* Set central values */
-    set_osc_params_zero(central_values);
     glbDefineParams(central_values, theta12, theta13, theta23, deltacp, sdm, ldm);
     glbSetDensityParams(central_values, 1.0, GLB_ALL);
 
     /* Set prior values */
     double theta12_error = 0.72 * M_PI / 180;
     double theta13_error = 1.9e-3;
-    double theta23_error = 0.8* M_PI / 180;
+    double theta23_error = 0.8 * M_PI / 180;
     double deltacp_error = 20 * M_PI / 180;
     double sdm_error = 0.21e-5;
     double ldm_error = 0.024e-3;
