@@ -1,14 +1,3 @@
-/* This program produces the data needed to plot the total events in the T2K far detector.
- * The output consists of five different spectra: CCQE nu_mu, CCQE nu_mu_bar, CCQE nu_e,
- * CCQE nu_e_bar and CC nu_e pi^+.
- *
- *
- * To do list:
- *   Step 1: Uncalibrated events with builtin smearing\\completed
- *   Step 2: Events after correction to normalization \\ignored
- *   Step 3: Events after smearing corrections\\no change
- *   Step 4: Events after data-driven corrections
- */
 extern "C" {
 #include "T2K_Setup.h"
 }
@@ -72,12 +61,12 @@ int main(int argc, char* argv[]) {
     glb_params true_values = glbAllocParams();
 
     /* Define standard oscillation parameters for NO in T2K */
-    double theta12 = asin(sqrt(0.307));   // nu-fit 6.0
-    double theta13 = asin(sqrt(0.02195)); // 2303
-    double theta23 = asin(sqrt(0.561));   // 2303
-    double deltacp = -1.97;               // 2303
-    double sdm = 7.49e-5;                 // nu-fit 5.2
-    double ldm = 2.495e-3 + sdm;          // 2303
+    double theta12 = asin(sqrt(0.307));
+    double theta13 = asin(sqrt(0.02195));
+    double theta23 = asin(sqrt(0.561));
+    double deltacp = -1.97;
+    double sdm = 7.49e-5;
+    double ldm = 2.495e-3 + sdm;
 
     glbSetOscParams(true_values, 1, LED::CalProbability::GLB_R);
     glbSetOscParams(true_values, 10, LED::CalProbability::GLB_C1R);

@@ -76,7 +76,7 @@ void InitializeT2K(glb_exp* in, int* counter) {
     // Initialize experiment list
     glbInitExperiment("../experiments/T2K_2303.03222/T2K_numu_2023.glb", in, counter);
 
-    // This will create a smearing metrix of globes type "A", on exp, channel,  with energy shifted e_shift and parameters par1 and par2
+    // This will create a smearing matrix of globes type "A", on exp, channel,  with energy shifted e_shift and parameters par1 and par2
     // Check T2K_SmearMatrixElementA, e_shift variable to see the energy shift.
     // the variables are: create_T2K_smear(exp, channel, e_shift, par1, par2)
     int Nexp = *counter - 1;

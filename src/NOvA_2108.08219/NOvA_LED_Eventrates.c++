@@ -1,15 +1,3 @@
-/* This program produces the data needed to plot the total events in the T2K far detector.
- * The output consists of five different spectra: CCQE nu_mu, CCQE nu_mu_bar, CCQE nu_e,
- * CCQE nu_e_bar and CC nu_e pi^+.
- *
- *
- * To do list:
- *   Step 1: Uncalibrated events with builtin smearing\\completed
- *   Step 2: Events after correction to normalization \\ignored
- *   Step 3: Events after smearing corrections\\no change
- *   Step 4: Events after data-driven corrections
- */
-
 extern "C" {
 #include "NOvA_Setup.h"
 }
@@ -73,12 +61,12 @@ int main(int argc, char* argv[]) {
                                  NULL);
 
     /* Define standard oscillation parameters for NO in NOvA */
-    double theta12 = asin(sqrt(0.307));   // NOvA
-    double theta13 = asin(sqrt(0.02195)); // NOvA
-    double theta23 = asin(sqrt(0.57));    // NOvA
-    double deltacp = 0.82 * M_PI;         // NOvA
-    double sdm = 7.49e-5;                 // NOvA
-    double ldm = 2.41e-3 + sdm;           // NOvA
+    double theta12 = asin(sqrt(0.307));
+    double theta13 = asin(sqrt(0.02195));
+    double theta23 = asin(sqrt(0.57));
+    double deltacp = 0.82 * M_PI;
+    double sdm = 7.49e-5;
+    double ldm = 2.41e-3 + sdm;
 
     /* Initialize the parameter vector */
     glb_params true_values = glbAllocParams();

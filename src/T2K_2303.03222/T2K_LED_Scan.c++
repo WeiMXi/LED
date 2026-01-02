@@ -68,11 +68,11 @@ int main(int argc, char* argv[]) {
     glb_params central_values = glbAllocParams();
 
     /* Define standard oscillation parameters for NO in T2K with Reactor Constraint */
-    double theta12 = asin(sqrt(0.307)); // nu-fit 6.0
+    double theta12 = asin(sqrt(0.307));
     double theta13 = asin(sqrt(0.02195));
     double theta23 = asin(sqrt(0.561));
     double deltacp = -1.97;
-    double sdm = 7.49e-5;        // nu-fit 6.0
+    double sdm = 7.49e-5;
     double ldm = 2.494e-3 + sdm; // NO
     /* Set the parameter vector */
     glbSetOscParams(central_values, 1, LED::CalProbability::GLB_R);

@@ -1,9 +1,3 @@
-/* ################################################################################## *
- * 	This program fits sin2th23 and deltaCP to NOvA far detector data alone	 *
- * ################################################################################## *
- */
-
-// #define _GNU_SOURCE
 #include <iostream>
 #include <math.h>
 #include <mpi.h> // 添加MPI头文件
