@@ -1,8 +1,8 @@
-add_executable(nu5d_mat_osc_NH nu5d_mat_osc_NH.c++)
+add_executable(LEDProbability_NH LEDProbability_NH.c++)
 
-target_link_libraries(nu5d_mat_osc_NH GSL::gsl globeslib LED_Lib)
+target_link_libraries(LEDProbability_NH GSL::gsl globeslib LED_Lib)
 if(OpenBLAS_FOUND)
-     target_link_libraries(nu5d_mat_osc_NH openblas)
+     target_link_libraries(LEDProbability_NH openblas)
 endif()
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/T2K_Prob.glb

@@ -44,6 +44,6 @@ endif()
 ########################################
 
 
-add_subdirectory(5d_bulk)
+add_subdirectory(probability)
 add_subdirectory(NOvA_2108.08219)
 add_subdirectory(T2K_2303.03222)
