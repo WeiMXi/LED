@@ -1,4 +1,4 @@
-#include "NOvA_Setup_New.h"
+#include "NOvA_Setup.h"
 #include "ledlib/IO/IO.h++" /* my input-output routines */
 
 #include <glb_smear.h>
@@ -54,10 +54,17 @@ int main(int argc, char* argv[]) {
     glbSetOscillationParameters(true_values);
     glbSetRates();
 
+<<<<<<< Updated upstream:src/NOvA_2108.08219/NOvA_SM_Eventrates.c++
     outputFiles.InitOutput(MYFILE, "");
     for (int i = 1; i <= 2000; i++) {
         double prob = glbFilteredConstantDensityProbability(0, 2, 2, -1, i * 0.002);
         outputFiles.AddToOutput2(i * 0.002, prob);
+=======
+    InitOutput(MYFILE, "");
+    for (int i = 1; i <= 2000; i++) {
+        double prob = glbFilteredConstantDensityProbability(0, 2, 1, 1, i * 0.002);
+        AddToOutput2(i * 0.002, prob);
+>>>>>>> Stashed changes:src/NOvA_2108.08219/NOvA_SM_Eventrates.c
     }
 
     /* Obtain lists for the energy bins in the considered samples */

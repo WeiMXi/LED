@@ -1,0 +1,360 @@
+%!GLoBES
+
+$version="3.2.13"
+
+/* Copyright 2021 Sampsa Vihonen (SYSU) and Pedro Pasquini (SJTU)
+ *
+ * If you modify this file you have to rename it.
+ *
+ * If you are using this file for producing a scientific publication
+ * or a talk please cite the following references (to be added) and check the supporting
+ * files for similar comments.
+ *
+ * This GLB file is created to assist in the analysis of the nue, nuebar and peripheral
+ * samples in the NOvA data, which were released in 2025 NuFact. 
+ *
+ *  Last Update: 2021-11-11 
+ * 
+ * Fixed by Haixing Lin (SYSU or CCNU)
+ *
+ *  Last Update: 2025-10-19
+ */
+
+
+/* ####### Beam flux ####### */
+
+numode_norm	= 6.47886918e-19
+antimode_norm	= 6.47886918e-19
+
+nuflux(#NOvA_numode_numu)<
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_neutrino_numu.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 26.6e20         /* POT */
+        @norm = numode_norm
+>
+
+nuflux(#NOvA_numode_numubar)<
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_neutrino_numubar.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 26.6e20         /* POT */
+        @norm = numode_norm
+>
+
+nuflux(#NOvA_numode_nue)<
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_neutrino_nue.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 26.6e20         /* POT */
+        @norm = numode_norm
+>
+
+nuflux(#NOvA_numode_nuebar)<
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_neutrino_nuebar.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 26.6e20         /* POT */
+        @norm = numode_norm
+>
+
+nuflux(#NOvA_antimode_numu)<
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_antineutrino_numu.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 12.5e20        /* POT */
+        @norm = antimode_norm
+>
+
+nuflux(#NOvA_antimode_numubar)<
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_antineutrino_numubar.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 12.5e20        /* POT */
+        @norm = antimode_norm
+>
+
+nuflux(#NOvA_antimode_nue)<
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_antineutrino_nue.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 12.5e20        /* POT */
+        @norm = antimode_norm
+>
+
+nuflux(#NOvA_antimode_nuebar)<
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_antineutrino_nuebar.dat"
+        @time = 1.0                     /* run */
+        @stored_muons = 12.5e20        /* POT */
+        @norm = antimode_norm
+>
+
+
+
+
+/* ####### Detector settings ###### */
+
+$target_mass =		14.0	/* kt (fiducial mass) */
+
+
+
+/* ####### Energy window ####### */
+
+$bins =		6
+$emin =		1.0	/* GeV */
+$emax =		4.0	/* GeV */
+
+$sampling_points =	100
+$sampling_min =	0.0	/* GeV */
+$sampling_max =	10	/* GeV */
+
+
+
+/* ####### Baseline setting ####### */
+
+$profiletype =		3 
+$densitytab =		{2.74}
+$lengthtab =		{812}	/* km */
+
+
+
+/* ####### Technical information ####### */
+
+$filter_state = 1
+$filter_value = 0.03 
+
+
+
+/* ####### Energy resolution ####### */
+
+
+
+energy(#nueLowPID)<
+        @type = 1
+        @sigma_e = {0.141, 0.00, 0.00}          /* 14.1% */
+>
+
+energy(#nueHighPID)<
+        @type = 1
+        @sigma_e = {0.094, 0.00, 0.00}          /* 9.4% */
+>
+
+energy(#anueLowPID)<
+        @type = 1
+        @sigma_e = {0.137, 0.00, 0.00}          /* 13.7% */
+>
+
+energy(#anueHighPID)<
+        @type = 1
+        @sigma_e = {0.089, 0.00, 0.00}          /* 8.9% */
+>
+
+energy(#nueLowPID_BKG)<
+        @type = 1
+        @sigma_e = {0.141, 0.00, 0.00}          /* 14.1% */
+>
+
+
+energy(#nueHighPID_BKG)<
+        @type = 1
+        @sigma_e = {0.094, 0.00, 0.00}          /* 9.4% */
+>
+
+energy(#anueLowPID_BKG)<
+        @type = 1
+        @sigma_e = {0.137, 0.00, 0.00}          /* 13.7% */
+>
+
+
+energy(#anueHighPID_BKG)<
+        @type = 1
+        @sigma_e = {0.089, 0.00, 0.00}          /* 8.9% */
+>
+
+
+/* ####### Cross sections ####### */
+
+cross(#CC)<
+	@cross_file = "../experiments/NOvA_2025.04361/NOvA_xsecs/XCC.dat"
+>
+
+
+/* ####### Channel definitions ####### */
+
+
+
+/********************** NuMode *************************/
+
+channel(#NuMode_lowPID_nue)<
+	@channel =	#NOvA_numode_numu:		+:	m:	e:	#CC:	#nueLowPID
+	@post_smearing_efficiencies = {2.355036,1.616701,0.914619,0.519105,0.515573,0.000000}// Signal
+>
+
+channel(#NuMode_lowPID_anue)<
+	@channel =	#NOvA_numode_numubar:		-:	m:	e:	#CC:	#nueLowPID
+	@post_smearing_efficiencies = {0.000000,3.719008,0.000000,0.000000,0.000000,0.000000}// WS
+
+>
+
+channel(#NuMode_lowPID_bkg_nue)<
+	@channel =	#NOvA_numode_nue:		+:	e:	e:	#CC:	#nueLowPID_BKG
+	@post_smearing_efficiencies = {10.240223,11.517246,7.318354,4.056737,2.595836,1.821576} //3 Beam BG
+>
+
+channel(#NuMode_lowPID_bkg_anue)<
+	@channel =	#NOvA_numode_nuebar:		-:	e:	e:	#CC:	#nueLowPID_BKG
+	@post_smearing_efficiencies = {10.240223,11.517246,7.318354,4.056737,2.595836,1.821576}//4 Beam BG
+  @post_smearing_background = {0.456621005, 0.730593607, 0.456621005, 0.091324201, 0.091324201, 0.091324201} // Cosmic Ray
+>
+
+channel(#NuMode_highPID_nue)<
+	@channel =	#NOvA_numode_numu:		+:	m:	e:	#CC:	#nueHighPID
+	@post_smearing_efficiencies = {6.447075,6.864889,5.243565,3.902340,3.617579,2.427363}
+>
+
+channel(#NuMode_highPID_anue)<
+	@channel =	#NOvA_numode_numubar:		-:	m:	e:	#CC:	#nueHighPID
+	@post_smearing_efficiencies = {9.160254,7.290534,9.949321,2.719636,0.000000,11.545861} //WS
+>
+
+channel(#NuMode_highPID_bkg_nue)<
+	@channel =	#NOvA_numode_nue:		+:	e:	e:	#CC:	#nueHighPID_BKG
+	@post_smearing_efficiencies = {7.606611,11.479704,9.101098,6.921059,4.988668,3.918783}
+>
+
+channel(#NuMode_highPID_bkg_anue)<
+	@channel =	#NOvA_numode_nuebar:		-:	e:	e:	#CC:	#nueHighPID_BKG
+	@post_smearing_efficiencies = {7.606611,11.479704,9.101098,6.921059,4.988668,3.918783}
+  @post_smearing_background = {0.182648402, 0.273972603, 0.182648402, 0.091324201, 0.091324201, 0.091324201}
+>
+
+
+
+/********************** aNuMode *************************/
+
+
+channel(#aNuMode_lowPID_nue)<
+	@channel =	#NOvA_antimode_numu:		+:	m:	e:	#CC:	#anueLowPID
+	@post_smearing_efficiencies = {2.353909,1.776196,1.638804,1.149828,2.222109,0.800602}  //WS
+>
+
+channel(#aNuMode_lowPID_anue)<
+	@channel =	#NOvA_antimode_numubar:		-:	m:	e:	#CC:	#anueLowPID
+	@post_smearing_efficiencies = {2.772780,1.769521,0.853726,0.523842,0.671929,1.799495}
+>
+
+channel(#aNuMode_lowPID_bkg_nue)<
+	@channel =	#NOvA_antimode_nue:		+:	e:	e:	#CC:	#anueLowPID_BKG
+	@post_smearing_efficiencies = {7.148981,7.520849,5.115234,3.602313,2.432256,2.392186}
+  @post_smearing_background = {0.084175084, 0.084175084, 0.033670034, 0.016835017, 0.016835017, 7.11E-15}
+>
+
+channel(#aNuMode_lowPID_bkg_anue)<
+	@channel =	#NOvA_antimode_nuebar:		-:	e:	e:	#CC:	#anueLowPID_BKG
+	@post_smearing_efficiencies = {7.148981,7.520849,5.115234,3.602313,2.432256,2.392186}
+>
+
+
+channel(#aNuMode_highPID_nue)< //WS
+	@channel =	#NOvA_antimode_numu:		+:	m:	e:	#CC:	#anueHighPID
+	@post_smearing_efficiencies = {3.422927,5.226639,5.614478,4.914928,4.962950,3.203545}
+>
+
+channel(#aNuMode_highPID_anue)<
+	@channel =	#NOvA_antimode_numubar:		-:	m:	e:	#CC:	#anueHighPID
+	@post_smearing_efficiencies = {7.021557,7.876312,5.820863,4.422113,3.353004,2.066005}
+>
+
+channel(#aNuMode_highPID_bkg_nue)<
+	@channel =	#NOvA_antimode_nue:		+:	e:	e:	#CC:	#anueHighPID_BKG
+	@post_smearing_efficiencies = {4.641903,8.328232,8.840458,7.451072,5.344554,4.479771}
+  @post_smearing_background = {0.033670034, 0.033670034, 0.016835017, 0.016835017, 0.016835017, 0.016835017}
+>
+
+channel(#aNuMode_highPID_bkg_anue)<
+	@channel =	#NOvA_antimode_nuebar:		-:	e:	e:	#CC:	#anueHighPID_BKG
+	@post_smearing_efficiencies = {4.641903,8.328232,8.840458,7.451072,5.344554,4.479771} 
+>
+
+
+/* ####### Setting the rules ####### */
+ 
+rule(#LowPID_NuMode)<
+	@signal = 1.0@#NuMode_lowPID_nue 
+	@background =  1.0@#NuMode_lowPID_bkg_nue : 1.0@#NuMode_lowPID_bkg_anue : 1.0@#NuMode_lowPID_anue
+
+	@sys_on_function = "chiSpectrumTilt"
+	@signalerror = 0.05 : 0.025
+	@backgrounderror = 0.10 : 0.025
+
+	@sys_off_function = "chiNoSysSpectrum"
+
+	@data_flag = 1
+	@data = {5 ,19 ,6 ,1 ,1 ,1}
+>
+
+rule(#HighPID_NuMode)<
+	@signal = 1.0@#NuMode_highPID_nue
+	@background =  1.0@#NuMode_highPID_bkg_nue : 1.0@#NuMode_highPID_bkg_anue : 1.0@#NuMode_highPID_anue
+
+	@sys_on_function = "chiSpectrumTilt"
+	@signalerror = 0.05 : 0.025
+	@backgrounderror = 0.10 : 0.025
+
+	@sys_off_function = "chiNoSysSpectrum"
+
+	@data_flag = 1
+	@data = {14 ,49 ,35 ,7 ,2 ,2}
+>
+
+
+rule(#LowPID_aNuMode)<
+	@signal =  1.0@#aNuMode_lowPID_anue
+	@background =  1.0@#aNuMode_lowPID_bkg_nue : 1.0@#aNuMode_lowPID_bkg_anue : 1.0@#aNuMode_lowPID_nue
+
+	@sys_on_function = "chiSpectrumTilt"
+
+	@signalerror = 0.05: 0.025
+	@backgrounderror = 0.10 : 0.025
+
+	@sys_off_function = "chiNoSysSpectrum"
+
+	@data_flag = 1
+	@data = {1, 5 ,5 ,0 ,1 ,0}
+>
+
+rule(#HighPID_aNuMode)<
+	@signal =  1.0@#aNuMode_highPID_anue
+	@background =  1.0@#aNuMode_highPID_bkg_nue : 1.0@#aNuMode_highPID_bkg_anue : 1.0@#aNuMode_highPID_nue
+
+	@sys_on_function = "chiSpectrumTilt"
+	@signalerror = 0.05 : 0.025
+	@backgrounderror = 0.10 : 0.025
+
+	@sys_off_function = "chiNoSysSpectrum"
+
+	@data_flag = 1
+	@data = {2, 6, 5, 4, 0, 0}
+>
+
+
+// 0.211033 SIG, 0.176471 WS, 0.182176 BeamBG
+rule(#Peripheral_NuMode)<
+	@signal = 0.211033@#NuMode_lowPID_nue : 0.211033@#NuMode_highPID_nue
+	@background =  0.182176@#NuMode_lowPID_bkg_nue : 0.182176@#NuMode_lowPID_bkg_anue : 0.182176@#NuMode_highPID_bkg_nue : 0.182176@#NuMode_highPID_bkg_nue : 0.176471@#NuMode_lowPID_anue : 0.176471@#NuMode_highPID_anue
+
+	@sys_on_function = "chiPeripheral"
+	@sys_on_errors = {0.05, 0.10} 
+
+	@sys_off_function = "chiNoSysSpectrum"
+
+>
+
+//0.185227 SIG, 0.173913 WS,, 0.190171 BeamBG
+rule(#Peripheral_aNuMode)<
+	@signal = 0.185227@#aNuMode_lowPID_anue : 0.185227@#aNuMode_highPID_anue
+	@background =  0.190171@#aNuMode_lowPID_bkg_nue : 0.190171@#aNuMode_lowPID_bkg_anue : 0.190171@#aNuMode_highPID_bkg_nue : 0.190171@#aNuMode_highPID_bkg_anue : 0.173913@#aNuMode_lowPID_nue : 0.173913@#aNuMode_highPID_nue
+
+	@sys_on_function = "chiPeripheral"
+	@sys_on_errors = {0.05, 0.10} 
+
+	@sys_off_function = "chiNoSysSpectrum"
+
+>
+
+
+
+/**********************END**********************/

@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     /* Select prior function (defined above) */
     glbRegisterPriorFunction(my_prior, NULL, NULL, NULL);
 
-    glbRegisterProbabilityEngine(13, /*Number of parameters*/
+    glbRegisterProbabilityEngine(11, /*Number of parameters*/
                                  &LED::CalProbability::my_probability_matrix,
                                  &LED::CalProbability::my_set_oscillation_parameters,
                                  &LED::CalProbability::my_get_oscillation_parameters,
@@ -79,11 +79,10 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, 10, LED::CalProbability::GLB_C1R);
     glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C2R);
     glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C3R);
-    glbSetOscParams(central_values, 0.1, LED::CalProbability::GLB_MU1R);
     double paramsNH[2] = {1, 0.1};                                                                                                                        // c1R,mu1R
     double mLightest2 = LED::CalProbability::solve_masseq_vac(0, paramsNH) / LED::CalProbability::mum_to_eVinv(1) / LED::CalProbability::mum_to_eVinv(1); // mmRR/RR
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, sdm + mLightest2), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, ldm + mLightest2), LED::CalProbability::GLB_MU3R); // T2K
+    glbSetOscParams(central_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
+
     LED::CalProbability::SetModesCutoff(40);
 
     /*Obtained from nufit 6.0*/
@@ -100,9 +99,7 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C1R);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C2R);
     glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_C3R);
-    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_MU3R);
+    glbSetOscParams(input_errors, 0, LED::CalProbability::GLB_M0SQUARE);
 
     /* Initialize parameter and projection vector(s) */
     glb_params test_values = glbAllocParams();
@@ -122,9 +119,8 @@ int main(int argc, char* argv[]) {
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C1R);
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C2R);
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C3R);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_MU1R);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_MU2R);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_MU3R);
+    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_M0SQUARE);
+
     glbSetDensityProjectionFlag(T2K_projection, GLB_FIXED, GLB_ALL);
     glbSetProjection(T2K_projection);
 
@@ -188,11 +184,9 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C2R);
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C3R);
 
-        glbSetOscParams(test_values, themu1R, LED::CalProbability::GLB_MU1R);
         double theParams[2] = {theAbsCR, themu1R}; // c1R,mu1R
         mLightest2 = LED::CalProbability::solve_masseq_vac(0, theParams) / LED::CalProbability::mum_to_eVinv(theR) / LED::CalProbability::mum_to_eVinv(theR);
-        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, sdm + mLightest2), LED::CalProbability::GLB_MU2R);
-        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, ldm + mLightest2), LED::CalProbability::GLB_MU3R);
+        glbSetOscParams(test_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
 
         res = glbChiNP(test_values, minimum, GLB_ALL);
         printf("%f %f %f\n", theAbsCR, themu1R, res);
@@ -276,15 +270,10 @@ int main(int argc, char* argv[]) {
 
     double paramsIH[2] = {1, 0.1};                                                                                                                 // c3R,mu3R
     mLightest2 = LED::CalProbability::solve_masseq_vac(0, paramsIH) / LED::CalProbability::mum_to_eVinv(1) / LED::CalProbability::mum_to_eVinv(1); // mmRR/RR
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.463e-3 + mLightest2), LED::CalProbability::GLB_MU1R);
-    glbSetOscParams(central_values, LED::CalProbability::CalculateMuiR(1, -10, 2.463e-3 + sdm + mLightest2), LED::CalProbability::GLB_MU2R);
-    glbSetOscParams(central_values, 0.1, LED::CalProbability::GLB_MU3R);
+    glbSetOscParams(test_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
     glbSetOscillationParameters(central_values);
     glbSetRates();
 
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_MU1R);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_MU2R);
-    glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_MU3R);
     glbSetDensityProjectionFlag(T2K_projection, GLB_FIXED, GLB_ALL);
     glbSetProjection(T2K_projection);
 
@@ -312,9 +301,7 @@ int main(int argc, char* argv[]) {
 
         double theParams[2] = {theAbsCR, themu3R}; // c3R,mu3R
         mLightest2 = LED::CalProbability::solve_masseq_vac(0, theParams) / LED::CalProbability::mum_to_eVinv(theR) / LED::CalProbability::mum_to_eVinv(theR);
-        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, 2.463e-3 + mLightest2), LED::CalProbability::GLB_MU1R);
-        glbSetOscParams(test_values, LED::CalProbability::CalculateMuiR(theR, -theAbsCR, 2.463e-3 + sdm + mLightest2), LED::CalProbability::GLB_MU2R);
-        glbSetOscParams(test_values, themu3R, LED::CalProbability::GLB_MU3R);
+        glbSetOscParams(test_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
         res = glbChiNP(test_values, minimum, GLB_ALL);
 
         printf("%f %f %f\n", theAbsCR, themu3R, res);
