@@ -308,8 +308,8 @@ inline void make_RRH(gsl_matrix_complex* RRH, gsl_matrix_complex* U,
     double cR[3] = {c1R, c2R, c3R};
     if (ldm > 0) {
         mu1R = CalMu1R(R, c1R, m0Sqare);
-        mu2R = CalculateMuiR(R, c2R, sdm);
-        mu3R = CalculateMuiR(R, c3R, ldm);
+        mu2R = CalculateMuiR(R, c2R, m0Sqare + sdm);
+        mu3R = CalculateMuiR(R, c3R, m0Sqare + ldm);
     } else if (ldm < 0) {
         mu3R = CalMu1R(R, c3R, m0Sqare);
         mu2R = CalculateMuiR(R, c2R, m0Sqare + sdm - ldm);
