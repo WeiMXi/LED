@@ -34,24 +34,12 @@ constexpr double DMSQ32_IH = -2.484e-3; // [eV^2] NuFit 6.0
 constexpr double GLB_V_factor = 7.5e-14; // Conversion factor for matter potentials
 constexpr double GLB_ne_mantle = 0.5;    // Effective electron numbers for calculation
 
-// deprecated
-constexpr int GLB_R = 6;
-constexpr int GLB_C1R = 7;
-constexpr int GLB_C2R = 8;
-constexpr int GLB_C3R = 9;
-constexpr int GLB_MU1R = 10;
-constexpr int GLB_MU2R = 11;
-constexpr int GLB_MU3R = 12;
-
 enum ParIndexes {
-    LedParR = 6,
-    LedParC1R = 7,
-    LedParC2R = 8,
-    LedParC3R = 9,
-    LedParMU1R = 10,
-    LedParMU2R = 11,
-    LedParMU3R = 12,
-    LedParM0 = 10 // do not compatible with LedParMUXR
+    GLB_R = 6,
+    GLB_C1R = 7,
+    GLB_C2R = 8,
+    GLB_C3R = 9,
+    GLB_M0SQUARE = 10
 };
 
 /***************************************************************************
@@ -67,20 +55,20 @@ static double deltacp;
 static double sdm;
 static double ldm;
 static double R, c1R, c2R, c3R, mu1R, mu2R, mu3R; // 5d bulk
-static double m0;                                 // the lightest nu mass
+static double m0Sqare;                            // the sqaure of lightest nu mass
 static int modes;                                 // modes cutoff in 5d bulk
 
 double mum_to_eVinv(const double x) { return x * 5.06773; }
 double eVinv_to_mum(const double x) { return x / 5.06773; }
 
-inline double CalMuiR(const double r, const double ciR, const double mi2) {
-    double r_eVinv = mum_to_eVinv(r);
-    if (std::abs(ciR) > TOLERANCE) {
-        return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
-    } else {
-        return sqrt(mi2 * (r_eVinv) * (r_eVinv));
-    }
-}
+// inline double CalMuiR(const double r, const double ciR, const double mi2) {
+//     double r_eVinv = mum_to_eVinv(r);
+//     if (std::abs(ciR) > TOLERANCE) {
+//         return std::sqrt(mi2 * (r_eVinv) * (r_eVinv) / 2 / std::numbers::pi / std::abs(ciR));
+//     } else {
+//         return sqrt(mi2 * (r_eVinv) * (r_eVinv));
+//     }
+// }
 
 inline double CalculateMuiR(const double r, const double ciR, const double mi2) {
     double y{}, muiR2{};
@@ -214,32 +202,6 @@ double solve_masseq_vac(int n, double* p) {
         return solve_masseq_vac_cot(n, p);
 };
 
-/**
- * @brief get the dirac mass form neutrino mass [eV] (IN C = 0!, with second-order correction)
- *
- * @param mui neutrino mass [eV]
- * @param r_mum compactification radius [mum]
- * @return double, dirac mass [eV]
- */
-auto CalMuid(const double mui, const double r_mum) -> double {
-    return mui / (1 - (std::pow(std::numbers::pi * mum_to_eVinv(r_mum) * mui, 2) / 6));
-};
-
-/**
- * @brief get the three muR form the lightest neutrino mass [eV] (IN C = 0!, with second-order correction)
- *
- * @param m0 the lightest neutrino mass [eV]
- * @param r_mum compactification radius [mum]
- * @return std::array<double, 3>, mu1R, mu2R, mu3R
- */
-auto calThreeMuiR(const double m0, const double r_mum) -> std::array<double, 3> {
-    const double r_eVinv{LED::CalProbability::mum_to_eVinv(r_mum)};
-    return std::array<double, 3>{
-        CalMuid(m0, r_mum) * r_eVinv,
-        CalMuid(std::sqrt(sdm + m0 * m0), r_mum) * r_eVinv,
-        CalMuid(std::sqrt(ldm + m0 * m0), r_mum) * r_eVinv};
-};
-
 inline int my_set_oscillation_parameters(glb_params p, void* user_data) {
     th12 = glbGetOscParams(p, GLB_THETA_12);
     th13 = glbGetOscParams(p, GLB_THETA_13);
@@ -253,49 +215,9 @@ inline int my_set_oscillation_parameters(glb_params p, void* user_data) {
     c1R = glbGetOscParams(p, GLB_C1R);
     c2R = glbGetOscParams(p, GLB_C2R);
     c3R = glbGetOscParams(p, GLB_C3R);
-    mu1R = glbGetOscParams(p, GLB_MU1R);
-    mu2R = glbGetOscParams(p, GLB_MU2R);
-    mu3R = glbGetOscParams(p, GLB_MU3R);
+    m0Sqare = glbGetOscParams(p, GLB_M0SQUARE);
 
     return 0;
-}
-
-/**
- * @brief Set the lightest neutrino mass and compactification radius, the compute other parameters
- * WARRING: this function need to be modified if you want to set c != 0
- * @param p glb_params
- * @param user_data
- * @return int
- */
-inline int SetRMParameters(glb_params p, void* user_data) {
-    th12 = glbGetOscParams(p, GLB_THETA_12);
-    th13 = glbGetOscParams(p, GLB_THETA_13);
-    th23 = glbGetOscParams(p, GLB_THETA_23);
-    deltacp = glbGetOscParams(p, GLB_DELTA_CP);
-    sdm = glbGetOscParams(p, GLB_DM_21);
-    ldm = glbGetOscParams(p, GLB_DM_31);
-
-    /* 5d bulk PARAMETERS*/
-
-    R = glbGetOscParams(p, LedParR);
-    c1R = glbGetOscParams(p, LedParC1R);
-    c2R = glbGetOscParams(p, LedParC2R);
-    c3R = glbGetOscParams(p, LedParC3R);
-
-    m0 = glbGetOscParams(p, LedParM0);
-
-    if (std::abs(c2R) < TOLERANCE) {
-        const auto [mu1RTemp, mu2RTemp, mu3RTemp] = calThreeMuiR(m0, R);
-        mu1R = mu1RTemp;
-        mu2R = mu2RTemp;
-        mu3R = mu3RTemp;
-    } else { // need modify to c != 0 case
-        mu1R = CalMuid(m0, R) * mum_to_eVinv(R);
-        mu2R = CalculateMuiR(R, c2R, sdm);
-        mu3R = CalculateMuiR(R, c3R, ldm);
-    }
-
-    return EXIT_SUCCESS;
 }
 
 /***************************************************************************
@@ -314,36 +236,9 @@ inline int my_get_oscillation_parameters(glb_params p, void* user_data) {
     glbSetOscParams(p, c1R, GLB_C1R);
     glbSetOscParams(p, c2R, GLB_C2R);
     glbSetOscParams(p, c3R, GLB_C3R);
-    glbSetOscParams(p, mu1R, GLB_MU1R);
-    glbSetOscParams(p, mu2R, GLB_MU2R);
-    glbSetOscParams(p, mu3R, GLB_MU3R);
+    glbSetOscParams(p, m0Sqare, GLB_M0SQUARE);
 
     return 0;
-}
-
-/**
- * @brief get the oscillation parameters, only for use m0 and R situation
- *
- * @param p glb_params
- * @param user_data
- * @return int
- */
-inline int GetRMParameters(glb_params p, void* user_data) {
-    glbSetOscParams(p, th12, GLB_THETA_12);
-    glbSetOscParams(p, th13, GLB_THETA_13);
-    glbSetOscParams(p, th23, GLB_THETA_23);
-    glbSetOscParams(p, deltacp, GLB_DELTA_CP);
-    glbSetOscParams(p, sdm, GLB_DM_21);
-    glbSetOscParams(p, ldm, GLB_DM_31);
-
-    /* 5d bulk PARAMETERS*/
-    glbSetOscParams(p, R, LedParR);
-    glbSetOscParams(p, c1R, LedParC1R);
-    glbSetOscParams(p, c2R, LedParC2R);
-    glbSetOscParams(p, c3R, LedParC3R);
-    glbSetOscParams(p, m0, LedParM0);
-
-    return EXIT_SUCCESS;
 }
 
 inline int GetModesCutoff() {
@@ -352,19 +247,6 @@ inline int GetModesCutoff() {
 
 inline void SetModesCutoff(const int n) {
     modes = n;
-}
-
-double hi_zero(double cbar, double mubar) {
-    const double pi = std::numbers::pi_v<double>;
-
-    double abs_c = std::abs(cbar);
-    if (abs_c < 1e-12) {
-        return 0.0;
-    }
-
-    double coth = std::cosh(pi * abs_c) / std::sinh(pi * abs_c);
-    double term = cbar - cbar * cbar * coth; // 注意 cbar² = (|c|)^2
-    return pi * mubar * mubar * term;
 }
 
 inline double CalLightestm2(const double r, const double c1R, const double mu1R) {
@@ -424,6 +306,15 @@ inline void make_RRH(gsl_matrix_complex* RRH, gsl_matrix_complex* U,
     double R_eVinv = mum_to_eVinv(R); // [eV^{-1}]
     double E_eV = E * 1e9;            // fix：should be 1e9 instead of 10e9
     double cR[3] = {c1R, c2R, c3R};
+    if (ldm > 0) {
+        mu1R = CalMu1R(R, c1R, m0Sqare);
+        mu2R = CalculateMuiR(R, c2R, sdm);
+        mu3R = CalculateMuiR(R, c3R, ldm);
+    } else if (ldm < 0) {
+        mu3R = CalMu1R(R, c3R, m0Sqare);
+        mu2R = CalculateMuiR(R, c2R, m0Sqare + sdm - ldm);
+        mu1R = CalculateMuiR(R, c1R, m0Sqare - ldm);
+    }
     double muR[3] = {mu1R, mu2R, mu3R};
 
     double Vc = cp_sign * density * GLB_V_factor * GLB_ne_mantle;
