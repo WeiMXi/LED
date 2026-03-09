@@ -1,5 +1,5 @@
 extern "C" {
-#include "NOvA_Setup_New.h"
+#include "NOvA_Setup.h"
 }
 #include "ledlib/Engine/ProbabilityEngine.h++"
 #include "ledlib/IO/IO.h++" /* my input-output routines */

@@ -12,7 +12,7 @@
 #define atoa(x) #x
 
 extern "C" {
-#include "NOvA_Setup_New.h"
+#include "NOvA_Setup.h"
 }
 #include "ledlib/Engine/ProbabilityEngine.h++"
 #include "ledlib/IO/IO.h++" /* my input-output routines */
@@ -120,10 +120,10 @@ int main(int argc, char* argv[]) {
     /* Define standard oscillation parameters */
     double theta12 = asin(sqrt(0.307));
     double theta13 = asin(sqrt(0.02195));
-    double theta23 = asin(sqrt(0.547));
-    double deltacp = 0.87 * M_PI;
+    double theta23 = asin(sqrt(0.57));
+    double deltacp = 0.82 * M_PI;
     double sdm = 7.49e-5;
-    double ldm = 2.441e-3 + sdm;
+    double ldm = 2.41e-3 + sdm;
 
     /* Initialize parameter vectors */
     glb_params central_values = glbAllocParams();
@@ -288,9 +288,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Flip hierarchy
-    glbSetOscParams(central_values, asin(sqrt(0.541)), GLB_THETA_23);
-    glbSetOscParams(central_values, 1.53 * M_PI, GLB_DELTA_CP);
-    glbSetOscParams(central_values, -2.481e-3 + sdm, GLB_DM_31); // DM31 = DM32 + DM21
+    glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
+    glbSetOscParams(central_values, 1.52 * M_PI, GLB_DELTA_CP);
+    glbSetOscParams(central_values, -2.45e-3 + sdm, GLB_DM_31); // DM31 = DM32 + DM21
     glbSetOscillationParameters(central_values);
     glbSetRates();
     set_proj_SM_TH23_DCP_2D(my_projection);

@@ -195,7 +195,11 @@ int main(int argc, char* argv[]) {
 
         res = glbChiNP(test_values, minimum, GLB_ALL);
 
-        printf("%f %f %f\n", theAbsCR, themu1R, res);
+        double mu1R = LED::CalProbability::CalMu1R(theR, theAbsCR, mLightest2);
+        double mu2R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 + sdm);
+        double mu3R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 + ldm);
+
+        printf("%f %f %f\n %f %f %f\n", theAbsCR, themu1R, res, mu1R, mu2R, mu3R);
         local_res[t] = res;
         double local_elapsed = MPI_Wtime() - start_time;
 
@@ -310,7 +314,7 @@ int main(int argc, char* argv[]) {
         res = glbChiNP(test_values, minimum, GLB_ALL);
 
         double mu3R = LED::CalProbability::CalMu1R(theR, theAbsCR, mLightest2);
-        double mu2R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 + sdm + 2.463e-3);
+        double mu2R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 - sdm + 2.463e-3);
         double mu1R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 + 2.463e-3);
 
         printf("%f %f %f\n %f %f %f\n", theAbsCR, themu3R, res, mu1R, mu2R, mu3R);

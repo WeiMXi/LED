@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
         mLightest2 = LED::CalProbability::CalLightestm2(theR, theAbsCR, themu1R);
 
         glbSetOscParams(test_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
-        // res = glbChiNP(test_values, minimum, GLB_ALL);
+        res = glbChiNP(test_values, minimum, GLB_ALL);
         printf("%f %f %f\n", theAbsCR, themu1R, res);
         local_res[t] = res;
         double local_elapsed = MPI_Wtime() - start_time;
