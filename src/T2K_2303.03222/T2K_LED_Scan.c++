@@ -79,8 +79,8 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, 10, LED::CalProbability::GLB_C1R);
     glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C2R);
     glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C3R);
-    double paramsNH[2] = {1, 0.1};                                                                                                                        // c1R,mu1R
-    double mLightest2 = LED::CalProbability::solve_masseq_vac(0, paramsNH) / LED::CalProbability::mum_to_eVinv(1) / LED::CalProbability::mum_to_eVinv(1); // mmRR/RR
+
+    double mLightest2 = LED::CalProbability::CalLightestm2(1, 10, 0.1);
     glbSetOscParams(central_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
 
     LED::CalProbability::SetModesCutoff(40);
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     /* Initiate a parameter vector for the scan */
     glbCopyParams(central_values, test_values);
 
-    double xmin = 2.5;
+    double xmin = 2;
     double xmax = 8;
     int xsteps = 40;
     double ymin = 0.1;
@@ -184,11 +184,10 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C2R);
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C3R);
 
-        double theParams[2] = {theAbsCR, themu1R}; // c1R,mu1R
-        mLightest2 = LED::CalProbability::solve_masseq_vac(0, theParams) / LED::CalProbability::mum_to_eVinv(theR) / LED::CalProbability::mum_to_eVinv(theR);
-        glbSetOscParams(test_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
+        mLightest2 = LED::CalProbability::CalLightestm2(theR, theAbsCR, themu1R);
 
-        res = glbChiNP(test_values, minimum, GLB_ALL);
+        glbSetOscParams(test_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
+        // res = glbChiNP(test_values, minimum, GLB_ALL);
         printf("%f %f %f\n", theAbsCR, themu1R, res);
         local_res[t] = res;
         double local_elapsed = MPI_Wtime() - start_time;
@@ -245,7 +244,7 @@ int main(int argc, char* argv[]) {
             double x_out = xmin + x_idx * dx;
             double y_out = ymin + y_idx * dy;
             res = all_res[idx];
-            outputFiles.AddToOutput(x_out, y_out, res);
+            // outputFiles.AddToOutput(x_out, y_out, res);
             if (res < chi_min) {
                 chi_min = res;
                 theta23_min = asin(sqrt(x_out));
@@ -268,9 +267,8 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C2R);
     glbSetOscParams(central_values, 10, LED::CalProbability::GLB_C3R);
 
-    double paramsIH[2] = {1, 0.1};                                                                                                                 // c3R,mu3R
-    mLightest2 = LED::CalProbability::solve_masseq_vac(0, paramsIH) / LED::CalProbability::mum_to_eVinv(1) / LED::CalProbability::mum_to_eVinv(1); // mmRR/RR
-    glbSetOscParams(test_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
+    mLightest2 = LED::CalProbability::CalLightestm2(1, 10, 0.1);
+    glbSetOscParams(central_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
     glbSetOscillationParameters(central_values);
     glbSetRates();
 
@@ -299,12 +297,15 @@ int main(int argc, char* argv[]) {
         glbSetOscParams(test_values, -theAbsCR, LED::CalProbability::GLB_C2R);
         glbSetOscParams(test_values, theAbsCR, LED::CalProbability::GLB_C3R);
 
-        double theParams[2] = {theAbsCR, themu3R}; // c3R,mu3R
-        mLightest2 = LED::CalProbability::solve_masseq_vac(0, theParams) / LED::CalProbability::mum_to_eVinv(theR) / LED::CalProbability::mum_to_eVinv(theR);
+        mLightest2 = LED::CalProbability::CalLightestm2(theR, theAbsCR, themu3R);
+
         glbSetOscParams(test_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
         res = glbChiNP(test_values, minimum, GLB_ALL);
+        double mu3R = LED::CalProbability::CalMu1R(theR, theAbsCR, mLightest2);
+        double mu2R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 + sdm + 2.463e-3);
+        double mu1R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 + 2.463e-3);
 
-        printf("%f %f %f\n", theAbsCR, themu3R, res);
+        printf("%f %f %f\n %f %f %f\n", theAbsCR, themu3R, res, mu1R, mu2R, mu3R);
         local_res[t] = res;
         double local_elapsed = MPI_Wtime() - start_time;
 
