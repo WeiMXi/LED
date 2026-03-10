@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     /* Initiate a parameter vector for the scan */
     glbCopyParams(central_values, test_values);
 
-    double xmin = 2;
+    double xmin = 2.5;
     double xmax = 8;
     int xsteps = 40;
     double ymin = 0.1;
