@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
             double x_out = xmin + x_idx * dx;
             double y_out = ymin + y_idx * dy;
             res = all_res[idx];
-            // outputFiles.AddToOutput(x_out, y_out, res);
+            outputFiles.AddToOutput(x_out, y_out, res);
             if (res < chi_min) {
                 chi_min = res;
                 theta23_min = asin(sqrt(x_out));

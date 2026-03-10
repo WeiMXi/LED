@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
 
     /* Initiate a parameter vector for the scan */
     glbCopyParams(central_values, test_values);
-    double xmin = 2;
+    double xmin = 2.5;
     double xmax = 8;
     int xsteps = 40;
     double ymin = 0.1;
@@ -314,8 +314,8 @@ int main(int argc, char* argv[]) {
         res = glbChiNP(test_values, minimum, GLB_ALL);
 
         double mu3R = LED::CalProbability::CalMu1R(theR, theAbsCR, mLightest2);
-        double mu2R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 - sdm + 2.463e-3);
-        double mu1R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 + 2.463e-3);
+        double mu2R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 + 2.45e-3);
+        double mu1R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 - sdm + 2.45e-3);
 
         printf("%f %f %f\n %f %f %f\n", theAbsCR, themu3R, res, mu1R, mu2R, mu3R);
         local_res[t] = res;
