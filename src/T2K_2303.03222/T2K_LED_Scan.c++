@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     glbSetInputErrors(input_errors);
 
     /*Set up the Projection  */
-    glbDefineProjection(T2K_projection, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
+    glbDefineProjection(T2K_projection, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FREE);
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_R);
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C1R);
     glbSetProjectionFlag(T2K_projection, GLB_FIXED, LED::CalProbability::GLB_C2R);
@@ -271,9 +271,6 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
     glbSetOscillationParameters(central_values);
     glbSetRates();
-
-    glbSetDensityProjectionFlag(T2K_projection, GLB_FIXED, GLB_ALL);
-    glbSetProjection(T2K_projection);
 
     glbCopyParams(central_values, test_values);
     start_time = MPI_Wtime();

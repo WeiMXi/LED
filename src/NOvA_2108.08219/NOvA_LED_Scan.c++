@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
     /* Set projection as previously defined */
     glb_projection my_projection = glbAllocProjection();
-    glbDefineProjection(my_projection, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
+    glbDefineProjection(my_projection, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FREE);
 
     glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_R);
     glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C1R);
@@ -283,8 +283,6 @@ int main(int argc, char* argv[]) {
     glbSetOscParams(central_values, mLightest2, LED::CalProbability::GLB_M0SQUARE);
     glbSetOscillationParameters(central_values);
     glbSetRates();
-    glbDefineProjection(my_projection, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
-    glbSetProjection(my_projection);
 
     glbCopyParams(central_values, test_values);
     start_time = MPI_Wtime();
