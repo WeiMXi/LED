@@ -27,28 +27,28 @@ numode_norm	= 6.47886918e-19
 antimode_norm	= 6.47886918e-19
 
 nuflux(#NOvA_numode_numu)<
-        @flux_file="../experiments/NOvA_25NuFact/NOvA_fluxes/NOvA_flux_neutrino_numu.dat"
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_neutrino_numu.dat"
         @time = 1.0                     /* run */
         @stored_muons = 26.6e20         /* POT */
         @norm = numode_norm
 >
 
 nuflux(#NOvA_numode_numubar)<
-        @flux_file="../experiments/NOvA_25NuFact/NOvA_fluxes/NOvA_flux_neutrino_numubar.dat"
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_neutrino_numubar.dat"
         @time = 1.0                     /* run */
         @stored_muons = 26.6e20         /* POT */
         @norm = numode_norm
 >
 
 nuflux(#NOvA_numode_nue)<
-        @flux_file="../experiments/NOvA_25NuFact/NOvA_fluxes/NOvA_flux_neutrino_nue.dat"
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_neutrino_nue.dat"
         @time = 1.0                     /* run */
         @stored_muons = 26.6e20         /* POT */
         @norm = numode_norm
 >
 
 nuflux(#NOvA_numode_nuebar)<
-        @flux_file="../experiments/NOvA_25NuFact/NOvA_fluxes/NOvA_flux_neutrino_nuebar.dat"
+        @flux_file="../experiments/NOvA_2025.04361/NOvA_fluxes/NOvA_flux_neutrino_nuebar.dat"
         @time = 1.0                     /* run */
         @stored_muons = 26.6e20         /* POT */
         @norm = numode_norm
@@ -112,7 +112,7 @@ energy(#nueLowEnergy_BKG)<
 /* ####### Cross sections ####### */
 
 cross(#CC)<
-	@cross_file = "../experiments/NOvA_25NuFact/NOvA_xsecs/XCC.dat"
+	@cross_file = "../experiments/NOvA_2025.04361/NOvA_xsecs/XCC.dat"
 >
 
 

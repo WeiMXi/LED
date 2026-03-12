@@ -144,7 +144,7 @@ void InitializeNOvA(glb_exp* in, int* counter) {
 
     glbDefineChiFunction(&ChiNOvAPeripheral, 2, "chiPeripheral", NULL);
     glbInitExperiment("../experiments/NOvA_2025.04361/NOvA_FD_nue_samples_Peripheral.glb", in, counter);
-    // glbInitExperiment("../experiments/NOvA_2025.04361/NOvA_FD_nue_lowEnergy.glb", in, counter);
+    glbInitExperiment("../experiments/NOvA_2025.04361/NOvA_FD_nue_lowEnergy.glb", in, counter);
 
     // Nexp   = *counter - 1;
     // Nsmear = 0;

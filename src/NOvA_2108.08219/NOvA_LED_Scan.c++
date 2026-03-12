@@ -6,7 +6,7 @@
 #include <string.h>
 #define atoa(x) #x
 extern "C" {
-#include "NOvA_Setup.h"
+#include "NOvA_Setup_New.h"
 }
 #include "ledlib/Engine/ProbabilityEngine.h++"
 #include "ledlib/IO/IO.h++" /* my input-output routines */
@@ -75,10 +75,10 @@ int main(int argc, char* argv[]) {
     /* Define standard oscillation parameters */
     double theta12 = asin(sqrt(0.307));
     double theta13 = asin(sqrt(0.02195));
-    double theta23 = asin(sqrt(0.57));
-    double deltacp = 0.82 * M_PI;
+    double theta23 = asin(sqrt(0.547));
+    double deltacp = 0.87 * M_PI;
     double sdm = 7.49e-5;
-    double ldm = 2.41e-3 + sdm;
+    double ldm = 2.441e-3 + sdm;
     glb_params central_values = glbAllocParams();
     glb_params input_errors = glbAllocParams();
 
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
     /* Set projection as previously defined */
     glb_projection my_projection = glbAllocProjection();
-    glbDefineProjection(my_projection, GLB_FIXED, GLB_FREE, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FREE);
+    glbDefineProjection(my_projection, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED, GLB_FIXED);
 
     glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_R);
     glbSetProjectionFlag(my_projection, GLB_FIXED, LED::CalProbability::GLB_C1R);
@@ -142,8 +142,8 @@ int main(int argc, char* argv[]) {
 
     /* Initiate a parameter vector for the scan */
     glbCopyParams(central_values, test_values);
-    double xmin = 2.5;
-    double xmax = 8;
+    double xmin = 5;
+    double xmax = 10;
     int xsteps = 40;
     double ymin = 0.1;
     double ymax = 1.5;
@@ -270,9 +270,9 @@ int main(int argc, char* argv[]) {
 
     // Flip hierarchy
     glbSetOscParams(central_values, asin(sqrt(0.02224)), GLB_THETA_13);
-    glbSetOscParams(central_values, asin(sqrt(0.56)), GLB_THETA_23);
-    glbSetOscParams(central_values, 1.52 * M_PI, GLB_DELTA_CP);
-    glbSetOscParams(central_values, -2.45e-3 + sdm, GLB_DM_31); // DM31 = DM32 + DM21
+    glbSetOscParams(central_values, asin(sqrt(0.541)), GLB_THETA_23);
+    glbSetOscParams(central_values, 1.53 * M_PI, GLB_DELTA_CP);
+    glbSetOscParams(central_values, -2.481e-3 + sdm, GLB_DM_31); // DM31 = DM32 + DM21
 
     glbSetOscParams(central_values, 1, LED::CalProbability::GLB_R);
     glbSetOscParams(central_values, -10, LED::CalProbability::GLB_C1R);
@@ -312,8 +312,8 @@ int main(int argc, char* argv[]) {
         res = glbChiNP(test_values, minimum, GLB_ALL);
 
         double mu3R = LED::CalProbability::CalMu1R(theR, theAbsCR, mLightest2);
-        double mu2R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 + 2.45e-3);
-        double mu1R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 - sdm + 2.45e-3);
+        double mu2R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 + 2.481e-3);
+        double mu1R = LED::CalProbability::CalculateMuiR(theR, -theAbsCR, mLightest2 - sdm + 2.481e-3);
 
         printf("%f %f %f\n %f %f %f\n", theAbsCR, themu3R, res, mu1R, mu2R, mu3R);
         local_res[t] = res;
